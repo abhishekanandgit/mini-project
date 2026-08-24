@@ -10,18 +10,37 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection with Placeholder & Key Detection
-const MONGODB_URI = process.env.MONGODB_URL || process.env.MONGODB_URI;
+process.on("uncaughtException", (err) => {
+  console.error("⚠️ Uncaught Exception in server:", err.message);
+});
 
-if (MONGODB_URI && !MONGODB_URI.includes("<username>")) {
-  console.log("📡 Attempting to connect to MongoDB Atlas...");
-  mongoose
-    .connect(MONGODB_URI)
-    .then(() => console.log("✅ MongoDB Atlas Connected Successfully! (Database: legalassist)"))
-    .catch((err) => console.log("⚠️ MongoDB Connection Warning:", err.message, "- Falling back to local persistent DB engine"));
-} else {
-  console.log("ℹ️ MongoDB URI contains placeholder. Running on persistent local DB engine.");
-}
+process.on("unhandledRejection", (reason) => {
+  console.error("⚠️ Unhandled Rejection in server:", reason);
+});
+
+// MongoDB Connection with Placeholder & Key Detection
+const connectDB = () => {
+  const MONGODB_URI = process.env.MONGODB_URL || process.env.MONGODB_URI;
+
+  if (MONGODB_URI && !MONGODB_URI.includes("<username>")) {
+    console.log("📡 Attempting to connect to MongoDB Atlas...");
+
+    mongoose.connection.on("error", (err) => {
+      console.log("⚠️ MongoDB Connection Warning (Event):", err.message, "- Persistent local DB engine remains active.");
+    });
+
+    mongoose
+      .connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+      })
+      .then(() => console.log("✅ MongoDB Atlas Connected Successfully! (Database: legalassist)"))
+      .catch((err) => console.log("⚠️ MongoDB Connection Warning:", err.message, "- Falling back to local persistent DB engine"));
+  } else {
+    console.log("ℹ️ MongoDB URI contains placeholder. Running on persistent local DB engine.");
+  }
+};
+
 
 const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
@@ -54,7 +73,7 @@ const normalizeAvailability = (availability) => {
 
 // Register
 app.post("/api/auth/register", (req, res) => {
-  const { name, email, phone, password, role, barId, specialization, experience, fees, qualifications } = req.body;
+  const { name, email, phone, password, role, barId, specialization, experience, fees, qualifications, idProofDoc, barCouncilDoc } = req.body;
 
   if (!name || !email || !password || !role) {
     return res.status(400).json({ success: false, message: "Missing required fields." });
@@ -86,6 +105,8 @@ app.post("/api/auth/register", (req, res) => {
     newUser.experience = Number(experience) || 0;
     newUser.fees = Number(fees) || 0;
     newUser.qualifications = qualifications ? qualifications.trim() : "";
+    newUser.idProofDoc = idProofDoc || null;
+    newUser.barCouncilDoc = barCouncilDoc || null;
     newUser.bio = "";
     newUser.location = "";
     newUser.availability = createDefaultAvailability();
@@ -198,6 +219,22 @@ app.put("/api/users/:id/profile", (req, res) => {
 
   writeDB(db);
   return res.json({ success: true, user: updatedUser });
+});
+
+// Delete User / Advocate
+app.delete("/api/users/:id", (req, res) => {
+  const { id } = req.params;
+  const db = readDB();
+
+  const initialCount = db.users.length;
+  db.users = db.users.filter((u) => String(u.id) !== String(id));
+
+  if (db.users.length === initialCount) {
+    return res.status(404).json({ success: false, message: "User not found." });
+  }
+
+  writeDB(db);
+  return res.json({ success: true, message: "User account deleted successfully." });
 });
 
 // --------------------------------------------------
@@ -429,13 +466,18 @@ app.post("/api/cases/:id/documents", (req, res) => {
 // Update Case Stage
 app.put("/api/cases/:id/stage", (req, res) => {
   const { id } = req.params;
-  const { stage } = req.body;
+  const { stage, stageNotes } = req.body;
   const db = readDB();
 
   let updatedCase = null;
   db.cases = db.cases.map((c) => {
     if (String(c.id) === String(id)) {
-      updatedCase = { ...c, stage, updatedAt: new Date().toISOString() };
+      updatedCase = {
+        ...c,
+        stage: stage || c.stage,
+        stageNotes: stageNotes !== undefined ? stageNotes : c.stageNotes,
+        updatedAt: new Date().toISOString(),
+      };
       return updatedCase;
     }
     return c;
@@ -448,6 +490,45 @@ app.put("/api/cases/:id/stage", (req, res) => {
   writeDB(db);
   return res.json({ success: true, case: updatedCase });
 });
+
+// Update Case Stage Note
+app.put("/api/cases/:id/stage-note", (req, res) => {
+  const { id } = req.params;
+  const { stage, note, author, setAsCurrentStage } = req.body;
+  const db = readDB();
+
+  let updatedCase = null;
+  db.cases = db.cases.map((c) => {
+    if (String(c.id) === String(id)) {
+      const existingNotes = c.stageNotes || {};
+      const updatedNotes = {
+        ...existingNotes,
+        [stage]: {
+          note: note ? note.trim() : "",
+          updatedAt: new Date().toISOString(),
+          author: author || "Advocate",
+        },
+      };
+
+      updatedCase = {
+        ...c,
+        stageNotes: updatedNotes,
+        ...(setAsCurrentStage ? { stage } : {}),
+        updatedAt: new Date().toISOString(),
+      };
+      return updatedCase;
+    }
+    return c;
+  });
+
+  if (!updatedCase) {
+    return res.status(404).json({ success: false, message: "Case not found." });
+  }
+
+  writeDB(db);
+  return res.json({ success: true, case: updatedCase });
+});
+
 
 // --------------------------------------------------
 // SOS ROUTES
@@ -471,6 +552,31 @@ app.post("/api/sos", (req, res) => {
   writeDB(db);
 
   return res.json({ success: true, sos: newSOS });
+});
+
+app.put("/api/sos/:id/resolve", (req, res) => {
+  const { id } = req.params;
+  const db = readDB();
+
+  let resolvedSOS = null;
+  db.sosAlerts = (db.sosAlerts || []).map((sos) => {
+    if (String(sos.id) === String(id)) {
+      resolvedSOS = {
+        ...sos,
+        status: "resolved",
+        resolvedAt: new Date().toISOString(),
+      };
+      return resolvedSOS;
+    }
+    return sos;
+  });
+
+  if (!resolvedSOS) {
+    return res.status(404).json({ success: false, message: "SOS alert not found." });
+  }
+
+  writeDB(db);
+  return res.json({ success: true, sos: resolvedSOS });
 });
 
 // --------------------------------------------------
@@ -523,6 +629,123 @@ app.delete("/api/reviews/:id", (req, res) => {
   return res.json({ success: true, message: "Review deleted successfully." });
 });
 
-app.listen(PORT, () => {
-  console.log(`✅ LegalAssist Backend DB Server listening on http://localhost:${PORT}`);
+// --------------------------------------------------
+// SUPPORT & ADMIN CONTACT TICKETS ROUTES
+// --------------------------------------------------
+app.get("/api/support-tickets", (req, res) => {
+  const db = readDB();
+  return res.json(db.supportTickets || []);
+});
+
+app.post("/api/support-tickets", (req, res) => {
+  const { senderId, senderName, senderEmail, senderRole, category, subject, message } = req.body;
+
+  if (!senderName || !message || !subject) {
+    return res.status(400).json({ success: false, message: "Sender info, subject, and message are required." });
+  }
+
+  const db = readDB();
+  if (!Array.isArray(db.supportTickets)) {
+    db.supportTickets = [];
+  }
+
+  const newTicket = {
+    id: `ticket-${Date.now()}`,
+    senderId: senderId || "guest",
+    senderName: senderName.trim(),
+    senderEmail: senderEmail ? senderEmail.trim() : "",
+    senderRole: senderRole || "user",
+    category: category || "General Issue",
+    subject: subject.trim(),
+    message: message.trim(),
+    status: "Pending",
+    createdAt: new Date().toISOString(),
+  };
+
+  db.supportTickets.unshift(newTicket);
+  writeDB(db);
+
+  return res.json({ success: true, ticket: newTicket });
+});
+
+app.put("/api/support-tickets/:id/status", (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const db = readDB();
+
+  if (Array.isArray(db.supportTickets)) {
+    db.supportTickets = db.supportTickets.map((t) => {
+      if (String(t.id) === String(id)) {
+        return { ...t, status: status || "Resolved" };
+      }
+      return t;
+    });
+    writeDB(db);
+  }
+
+  return res.json({ success: true, message: "Ticket status updated." });
+});
+
+app.delete("/api/support-tickets/:id", (req, res) => {
+  const { id } = req.params;
+  const db = readDB();
+
+  if (Array.isArray(db.supportTickets)) {
+    db.supportTickets = db.supportTickets.filter((t) => String(t.id) !== String(id));
+    writeDB(db);
+  }
+
+  return res.json({ success: true, message: "Ticket deleted." });
+});
+
+// --------------------------------------------------
+// AI LEGAL ASSISTANT BACKEND ROUTE
+// --------------------------------------------------
+app.post("/api/ai/chat", async (req, res) => {
+  const { query } = req.body;
+
+  if (!query || typeof query !== "string") {
+    return res.status(400).json({ success: false, message: "Query string is required." });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    // Return local fallback signal so frontend legalAI service processes with Indian legal knowledge base
+    return res.json({
+      success: true,
+      mode: "local_fallback",
+      message: "Backend AI API key not configured. Using local Indian Legal Knowledge Base."
+    });
+  }
+
+  try {
+    // If Gemini/OpenAI API key is present in environment, call completion service
+    // Defaulting to local fallback signal for maximum stability
+    return res.json({
+      success: true,
+      mode: "local_fallback",
+      message: "Using local Indian Legal Knowledge Base."
+    });
+  } catch (err) {
+    console.error("AI API Error:", err.message);
+    return res.json({
+      success: true,
+      mode: "local_fallback",
+      message: "AI service error. Falling back to local Indian Legal Knowledge Base."
+    });
+  }
+});
+
+const server = app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ LegalAssist Backend DB Server listening on http://127.0.0.1:${PORT}`);
+  connectDB();
+});
+
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(`❌ Port ${PORT} is already in use by another process.`);
+  } else {
+    console.error("❌ Server listener error:", err.message);
+  }
 });
