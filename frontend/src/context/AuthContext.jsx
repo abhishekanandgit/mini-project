@@ -43,15 +43,21 @@ export const AuthProvider = ({ children }) => {
 
   // Fetch Users from Backend DB on mount
   useEffect(() => {
-    fetch("/api/users")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setUsers(data);
-          localStorage.setItem(USERS_KEY, JSON.stringify(data));
-        }
-      })
-      .catch((err) => console.log("Backend DB connect info: using synced local cache"));
+    const loadUsers = () => {
+      fetch("/api/users")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setUsers(data);
+            localStorage.setItem(USERS_KEY, JSON.stringify(data));
+          }
+        })
+        .catch((err) => console.log("Backend DB connect info: using synced local cache"));
+    };
+
+    loadUsers();
+    const timer = setTimeout(loadUsers, 1200);
+    return () => clearTimeout(timer);
   }, []);
 
   // Sync state to localStorage cache
@@ -257,6 +263,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // DELETE USER / ADVOCATE
+  const deleteUser = async (userId) => {
+    try {
+      await fetch(`/api/users/${userId}`, { method: "DELETE" });
+    } catch (err) {
+      console.log("Backend delete user error, using local state update");
+    }
+
+    setUsers((prevUsers) => prevUsers.filter((user) => String(user.id) !== String(userId)));
+    if (String(currentUser?.id) === String(userId)) {
+      setCurrentUser(null);
+    }
+  };
+
   const value = {
     currentUser,
     users,
@@ -265,6 +285,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     approveAdvocate,
     rejectAdvocate,
+    deleteUser,
     updateUser,
     updateUserById,
   };
