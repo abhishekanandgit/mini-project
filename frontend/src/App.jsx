@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
+import AIChatbotGlobal from "./components/AIChatbotGlobal";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -14,6 +15,7 @@ import AdvocateDetail from "./pages/AdvocateDetail";
 import BookAppointment from "./pages/BookAppointment";
 import Contact from "./pages/Contact";
 import AdvocateAvailability from "./pages/AdvocateAvailability";
+import LegalAssistant from "./pages/LegalAssistant";
 
 import { AuthProvider } from "./context/AuthContext";
 import { DataProvider } from "./context/DataContext";
@@ -24,6 +26,7 @@ function App() {
       <DataProvider>
         <BrowserRouter>
           <Navbar />
+          <AIChatbotGlobal />
 
           <Routes>
             {/* Public Pages */}
@@ -36,6 +39,7 @@ function App() {
               element={<AdvocateDetail />}
             />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/ai-legal-assistant" element={<LegalAssistant />} />
 
             {/* Appointment */}
             <Route
