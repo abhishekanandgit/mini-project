@@ -3,14 +3,15 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useData } from "../context/DataContext";
 import SOSModal from "../components/SOSModal";
-
 import CaseStageTimeline from "../components/CaseStageTimeline";
+import ContactAdminModal from "../components/ContactAdminModal";
 
 function UserDashboard() {
   const { currentUser } = useAuth();
   const { advocates, appointments, cases, uploadCaseDocument, uploadAppointmentDocument, addReview, deleteAppointment } = useData();
 
   const [showSOS, setShowSOS] = useState(false);
+  const [showContactAdminModal, setShowContactAdminModal] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
   const [message, setMessage] = useState("");
 
@@ -112,56 +113,69 @@ function UserDashboard() {
       <section className="py-5">
         <div className="container">
 
-          {/* QUICK ACTIONS */}
+          {/* QUICK ACTIONS ROW */}
           <div className="row g-4 mb-5">
 
+            {/* CARD 1: AI LEGAL ASSISTANT */}
             <div className="col-md-4">
-              <div className="card border-0 shadow-sm h-100">
+              <div
+                className="card border-0 shadow-sm h-100"
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  window.dispatchEvent(new Event("open-ai-chatbot"));
+                }}
+              >
                 <div className="card-body p-4">
-                  <div className="bg-danger-subtle text-danger rounded-3 p-3 d-inline-block mb-3">
-                    <i className="bi bi-search fs-3"></i>
+                  <div className="bg-dark text-warning rounded-3 p-3 d-inline-block mb-3">
+                    <i className="bi bi-robot fs-3"></i>
                   </div>
 
-                  <h5 className="fw-bold">Find Advocates</h5>
+                  <h5 className="fw-bold">AI Legal Assistant</h5>
 
                   <p className="text-muted small">
-                    Search and view verified advocates based on
-                    specialization and experience.
+                    Get basic information about legal terms, procedures, rights and rules using the AI Legal Assistant.
                   </p>
 
-                  <Link
-                    to="/advocates"
-                    className="btn btn-outline-dark rounded-pill btn-sm"
+                  <button
+                    type="button"
+                    className="btn btn-dark rounded-pill btn-sm px-4"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.dispatchEvent(new Event("open-ai-chatbot"));
+                    }}
                   >
-                    Find Advocates
-                  </Link>
+                    <i className="bi bi-robot me-2"></i>
+                    Ask AI Assistant
+                  </button>
                 </div>
               </div>
             </div>
 
+            {/* CARD 2: FIND ADVOCATES & BOOK APPOINTMENT */}
             <div className="col-md-4">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body p-4">
                   <div className="bg-primary-subtle text-primary rounded-3 p-3 d-inline-block mb-3">
-                    <i className="bi bi-calendar-check fs-3"></i>
+                    <i className="bi bi-person-badge fs-3"></i>
                   </div>
 
-                  <h5 className="fw-bold">Book Appointment</h5>
+                  <h5 className="fw-bold">Find Advocates & Book Appointment</h5>
 
                   <p className="text-muted small">
-                    Book a consultation with a verified advocate.
+                    Search verified advocates by specialization, view profiles, and book consultation time slots.
                   </p>
 
                   <Link
                     to="/advocates"
                     className="btn btn-outline-primary rounded-pill btn-sm"
                   >
-                    Book Now
+                    Find & Book Consultation
                   </Link>
                 </div>
               </div>
             </div>
 
+            {/* CARD 3: CONSULTATIONS & CASE PORTAL */}
             <div className="col-md-4">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body p-4">
@@ -336,9 +350,20 @@ function UserDashboard() {
                           )}
 
                         {/* CASE STAGE TIMELINE FOR CONFIRMED APPOINTMENTS */}
-                        {((app.status || "").toLowerCase() === "accepted" || (app.status || "").toLowerCase() === "confirmed") && (
-                          <CaseStageTimeline currentStage={app.stage || "Consultation"} />
-                        )}
+                        {((app.status || "").toLowerCase() === "accepted" || (app.status || "").toLowerCase() === "confirmed") && (() => {
+                          const matchingCase = cases.find(
+                            (c) => String(c.appointmentId) === String(app.id) ||
+                            (c.clientEmail === currentUser?.email && String(c.advocateId) === String(app.advocateId))
+                          );
+                          return (
+                            <CaseStageTimeline
+                              currentStage={matchingCase?.stage || app.stage || "Consultation"}
+                              stageNotes={matchingCase?.stageNotes || app.stageNotes}
+                              caseTitle={matchingCase?.title || `${app.advocateName} - Legal Consultation`}
+                              isAdvocate={false}
+                            />
+                          );
+                        })()}
 
                         {/* ACCEPTED APPOINTMENT FILE SHARING */}
                         {((app.status || "").toLowerCase() === "accepted" || (app.status || "").toLowerCase() === "confirmed") && (
@@ -482,124 +507,47 @@ function UserDashboard() {
             )}
           </div>
 
-          {/* PROFILE + AI */}
+          {/* PROFILE */}
           <div className="row g-4">
-
-            {/* PROFILE */}
-            <div className="col-lg-6">
-
-              <div className="card border-0 shadow-sm h-100">
-
+            <div className="col-12">
+              <div className="card border-0 shadow-sm">
                 <div className="card-header bg-white border-0 p-4">
-
                   <div className="d-flex justify-content-between align-items-center">
-
                     <div>
-
                       <h4 className="fw-bold mb-1">
                         <i className="bi bi-person-circle me-2 text-primary"></i>
                         My Profile
                       </h4>
-
                       <p className="text-muted small mb-0">
                         Your account information
                       </p>
-
                     </div>
-
                     <Link
                       to="/profile"
                       className="btn btn-outline-dark btn-sm rounded-pill"
                     >
                       Edit Profile
                     </Link>
-
                   </div>
-
                 </div>
-
                 <div className="card-body p-4">
-
-                  <div className="mb-3">
-
-                    <label className="text-muted small">
-                      Name
-                    </label>
-
-                    <div className="fw-semibold">
-                      {currentUser?.name || "Not provided"}
+                  <div className="row g-3">
+                    <div className="col-md-4">
+                      <label className="text-muted small">Name</label>
+                      <div className="fw-semibold">{currentUser?.name || "Not provided"}</div>
                     </div>
-
-                  </div>
-
-                  <div className="mb-3">
-
-                    <label className="text-muted small">
-                      Email
-                    </label>
-
-                    <div className="fw-semibold">
-                      {currentUser?.email || "Not provided"}
+                    <div className="col-md-4">
+                      <label className="text-muted small">Email</label>
+                      <div className="fw-semibold">{currentUser?.email || "Not provided"}</div>
                     </div>
-
-                  </div>
-
-                  <div>
-
-                    <label className="text-muted small">
-                      Phone
-                    </label>
-
-                    <div className="fw-semibold">
-                      {currentUser?.phone || "Not provided"}
+                    <div className="col-md-4">
+                      <label className="text-muted small">Phone</label>
+                      <div className="fw-semibold">{currentUser?.phone || "Not provided"}</div>
                     </div>
-
                   </div>
-
                 </div>
-
               </div>
-
             </div>
-
-            {/* AI ASSISTANT */}
-            <div className="col-lg-6">
-
-              <div className="card border-0 shadow-sm h-100">
-
-                <div className="card-body p-4">
-
-                  <div className="bg-dark text-warning rounded-3 p-3 d-inline-block mb-3">
-                    <i className="bi bi-robot fs-2"></i>
-                  </div>
-
-                  <h4 className="fw-bold">
-                    AI Legal Assistant
-                  </h4>
-
-                  <p className="text-muted">
-                    Get basic information about legal terms, procedures,
-                    rights and rules using the AI Legal Assistant.
-                  </p>
-
-                  <button
-                    className="btn btn-dark rounded-pill px-4"
-                    onClick={() => {
-                      window.dispatchEvent(
-                        new Event("open-ai-chatbot")
-                      );
-                    }}
-                  >
-                    <i className="bi bi-robot me-2"></i>
-                    Ask AI Assistant
-                  </button>
-
-                </div>
-
-              </div>
-
-            </div>
-
           </div>
 
         </div>
@@ -612,6 +560,14 @@ function UserDashboard() {
           onClose={closeSOS}
         />
       )}
+
+      {/* CONTACT ADMIN MODAL */}
+      <ContactAdminModal
+        show={showContactAdminModal}
+        onClose={() => setShowContactAdminModal(false)}
+        currentUser={currentUser}
+        role="user"
+      />
 
     </div>
   );

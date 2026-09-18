@@ -172,7 +172,12 @@ function CaseStatus() {
                   </div>
 
                   {/* REAL-TIME HORIZONTAL CASE STAGE TIMELINE */}
-                  <CaseStageTimeline currentStage={activeCase.stage || "Consultation"} />
+                  <CaseStageTimeline
+                    currentStage={activeCase.stage || "Consultation"}
+                    stageNotes={activeCase.stageNotes}
+                    caseTitle={activeCase.title}
+                    isAdvocate={currentUser?.role === "advocate"}
+                  />
 
                   {/* DOCUMENT SHARING SECTION */}
                   <div className="border-top pt-4">
