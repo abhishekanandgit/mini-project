@@ -3,19 +3,24 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useData } from "../context/DataContext";
 import CaseStageTimeline from "../components/CaseStageTimeline";
+import ContactAdminModal from "../components/ContactAdminModal";
 
 const AdvocateDashboard = () => {
   const { currentUser, updateUser } = useAuth();
+  const [showContactAdminModal, setShowContactAdminModal] = useState(false);
 
   const {
     advocates,
     appointments,
     cases,
     reviews,
+    sosAlerts,
+    resolveSOS,
     updateAdvocateProfile,
     updateAppointmentStatus,
     createCase,
     updateCaseStage,
+    updateCaseStageNote,
     uploadCaseDocument,
     getAdvocateRating,
   } = useData();
@@ -66,6 +71,24 @@ const AdvocateDashboard = () => {
   const [message, setMessage] = useState("");
   const [rejectingApptId, setRejectingApptId] = useState(null);
   const [rejectionReasonText, setRejectionReasonText] = useState("");
+  const [callModalTarget, setCallModalTarget] = useState(null);
+
+  const handleOpenCallModal = (name, phone, email) => {
+    if (!phone) return;
+    const cleanPhone = phone.replace(/[^0-9+]/g, "");
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // On mobile devices: launch native phone dialer with number pre-dialed
+      window.location.href = `tel:${cleanPhone}`;
+    } else {
+      // On Desktop PC: launch instant Web Video/Audio Call directly in a new tab
+      const meetingRoom = `LegalAssist-DirectCall-${cleanPhone.slice(-6)}-${Date.now().toString().slice(-4)}`;
+      window.open(`https://meet.jit.si/${meetingRoom}`, "_blank");
+      setMessage(`Launching instant Web Call room for ${name || "Client"} (${phone})...`);
+      setTimeout(() => setMessage(""), 4000);
+    }
+  };
 
   const myAppointments = useMemo(() => {
     if (!currentUser) {
@@ -97,6 +120,17 @@ const AdvocateDashboard = () => {
       (r) => String(r.advocateId) === String(currentUser.id) || r.advocateEmail === currentUser.email
     );
   }, [reviews, currentUser]);
+
+  const mySOSAlerts = useMemo(() => {
+    if (!currentUser) return [];
+    return (sosAlerts || []).filter(
+      (s) => String(s.advocateId) === String(currentUser.id) || s.advocateEmail === currentUser.email
+    );
+  }, [sosAlerts, currentUser]);
+
+  const activeSOSAlerts = useMemo(() => {
+    return mySOSAlerts.filter((s) => (s.status || "").toLowerCase() !== "resolved");
+  }, [mySOSAlerts]);
 
   const { avgRating, count: myReviewCount } = getAdvocateRating(currentUser?.id);
 
@@ -263,6 +297,17 @@ const AdvocateDashboard = () => {
     }, 2500);
   };
 
+  const handleSaveStageNote = (caseId, stage, note, setAsCurrent = false) => {
+    updateCaseStageNote(caseId, stage, note, currentUser?.name || "Advocate", setAsCurrent);
+
+    setMessage(`Stage note for "${stage}" saved successfully.`);
+
+    setTimeout(() => {
+      setMessage("");
+    }, 3000);
+  };
+
+
   const handleDocumentUpload = (
     caseId,
     event
@@ -323,11 +368,10 @@ const AdvocateDashboard = () => {
 
           <div className="d-flex align-items-center flex-wrap gap-2 mt-3 mt-md-0">
             <span
-              className={`badge rounded-pill px-3 py-2 ${
-                currentUser.status === "verified" || myProfile?.status === "verified"
+              className={`badge rounded-pill px-3 py-2 ${currentUser.status === "verified" || myProfile?.status === "verified"
                   ? "bg-success"
                   : "bg-danger text-white"
-              }`}
+                }`}
             >
               {currentUser.status === "verified" || myProfile?.status === "verified"
                 ? "Verified Advocate"
@@ -367,11 +411,10 @@ const AdvocateDashboard = () => {
           <div className="card-body">
             <div className="d-flex flex-wrap gap-2">
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "overview"
+                className={`btn rounded-pill ${activeTab === "overview"
                     ? "btn-dark"
                     : "btn-outline-dark"
-                }`}
+                  }`}
                 onClick={() =>
                   setActiveTab("overview")
                 }
@@ -380,11 +423,10 @@ const AdvocateDashboard = () => {
               </button>
 
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "appointments"
+                className={`btn rounded-pill ${activeTab === "appointments"
                     ? "btn-dark"
                     : "btn-outline-dark"
-                }`}
+                  }`}
                 onClick={() =>
                   setActiveTab("appointments")
                 }
@@ -393,11 +435,10 @@ const AdvocateDashboard = () => {
               </button>
 
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "cases"
+                className={`btn rounded-pill ${activeTab === "cases"
                     ? "btn-dark"
                     : "btn-outline-dark"
-                }`}
+                  }`}
                 onClick={() =>
                   setActiveTab("cases")
                 }
@@ -406,11 +447,10 @@ const AdvocateDashboard = () => {
               </button>
 
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "profile"
+                className={`btn rounded-pill ${activeTab === "profile"
                     ? "btn-dark"
                     : "btn-outline-dark"
-                }`}
+                  }`}
                 onClick={() =>
                   setActiveTab("profile")
                 }
@@ -419,17 +459,36 @@ const AdvocateDashboard = () => {
               </button>
 
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "reviews"
+                className={`btn rounded-pill ${activeTab === "reviews"
                     ? "btn-dark"
                     : "btn-outline-dark"
-                }`}
+                  }`}
                 onClick={() =>
                   setActiveTab("reviews")
                 }
               >
                 <i className="bi bi-star-fill text-warning me-1"></i>
                 Reviews & Ratings ({myReviews.length})
+              </button>
+
+              <button
+                className={`btn rounded-pill ${activeTab === "sos"
+                    ? "btn-danger text-white fw-bold shadow-sm"
+                    : activeSOSAlerts.length > 0
+                      ? "btn-outline-danger fw-bold border-2"
+                      : "btn-outline-secondary"
+                  }`}
+                onClick={() =>
+                  setActiveTab("sos")
+                }
+              >
+                <i className="bi bi-bell-fill me-1"></i>
+                Emergency SOS
+                {activeSOSAlerts.length > 0 && (
+                  <span className="badge bg-danger text-white ms-2 rounded-pill">
+                    {activeSOSAlerts.length} Active
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -438,6 +497,31 @@ const AdvocateDashboard = () => {
         {/* OVERVIEW */}
         {activeTab === "overview" && (
           <>
+            {activeSOSAlerts.length > 0 && (
+              <div className="alert alert-danger border border-danger shadow-sm rounded-4 mb-4 p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div className="d-flex align-items-center gap-3">
+                  <div className="bg-danger text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style={{ width: "50px", height: "50px" }}>
+                    <i className="bi bi-bell-fill fs-4"></i>
+                  </div>
+                  <div>
+                    <h5 className="fw-bold mb-1 text-danger">
+                      🚨 URGENT: {activeSOSAlerts.length} Client Emergency SOS Alert(s)!
+                    </h5>
+                    <p className="mb-0 text-dark small">
+                      Client(s) have triggered emergency help messages requesting immediate advocate response.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-danger text-white rounded-pill px-4 fw-bold shadow-sm text-nowrap"
+                  onClick={() => setActiveTab("sos")}
+                >
+                  View Emergency Alerts ({activeSOSAlerts.length})
+                </button>
+              </div>
+            )}
+
             <div className="row g-4 mb-4">
 
               <div className="col-md-3">
@@ -680,13 +764,12 @@ const AdvocateDashboard = () => {
                                 {appointment.userName || appointment.clientName || "Client"}
                               </h5>
                               <span
-                                className={`badge ${
-                                  isAccepted
+                                className={`badge ${isAccepted
                                     ? "bg-success"
                                     : isRejected
-                                    ? "bg-danger"
-                                    : "bg-warning text-dark"
-                                }`}
+                                      ? "bg-danger"
+                                      : "bg-warning text-dark"
+                                  }`}
                               >
                                 {appointment.status}
                               </span>
@@ -696,7 +779,19 @@ const AdvocateDashboard = () => {
                               <strong>Email:</strong> {appointment.userEmail || "Not provided"}
                             </p>
                             <p className="mb-2">
-                              <strong>Phone:</strong> {appointment.userPhone || "Not provided"}
+                              <strong>Phone:</strong>{" "}
+                              {appointment.userPhone ? (
+                                <button
+                                  type="button"
+                                  className="btn btn-link btn-sm p-0 text-decoration-none fw-bold text-danger"
+                                  onClick={() => handleOpenCallModal(appointment.userName, appointment.userPhone, appointment.userEmail)}
+                                >
+                                  <i className="bi bi-telephone-fill me-1"></i>
+                                  {appointment.userPhone}
+                                </button>
+                              ) : (
+                                "Not provided"
+                              )}
                             </p>
                             <p className="mb-2">
                               <strong>Date:</strong> {appointment.date || "Not scheduled"}
@@ -705,7 +800,7 @@ const AdvocateDashboard = () => {
                               <strong>Time:</strong> {appointment.time || "Not scheduled"}
                             </p>
 
-                             {(appointment.consultationType === "Online Consultation" || appointment.meetingLink) && (appointment.status || "").toLowerCase() !== "rejected" && (
+                            {(appointment.consultationType === "Online Consultation" || appointment.meetingLink) && (appointment.status || "").toLowerCase() !== "rejected" && (
                               <div className="bg-primary-subtle border border-primary-subtle rounded-3 p-3 mb-3">
                                 <small className="text-primary d-block mb-1 fw-bold"><i className="bi bi-camera-video-fill me-1"></i> Virtual Video Consultation Link:</small>
                                 <a
@@ -1028,8 +1123,11 @@ const AdvocateDashboard = () => {
 
                             <CaseStageTimeline
                               currentStage={caseItem.stage || "Filed"}
+                              stageNotes={caseItem.stageNotes}
                               isAdvocate={true}
+                              caseTitle={caseItem.title}
                               onStageChange={(stg) => handleCaseStage(caseItem.id, stg)}
+                              onSaveStageNote={(stg, note, setAsCurrent) => handleSaveStageNote(caseItem.id, stg, note, setAsCurrent)}
                             />
 
                             <div className="mb-3">
@@ -1101,7 +1199,7 @@ const AdvocateDashboard = () => {
                               caseItem.documents
                             ) &&
                               caseItem.documents.length >
-                                0 && (
+                              0 && (
                                 <div className="mt-3">
                                   <small className="text-muted">
                                     Documents
@@ -1390,6 +1488,260 @@ const AdvocateDashboard = () => {
             </div>
           </div>
         )}
+
+        {/* EMERGENCY SOS ALERTS TAB */}
+        {activeTab === "sos" && (
+          <div className="card border-0 shadow-sm rounded-4">
+            <div className="card-body p-4">
+
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                  <h4 className="fw-bold mb-1 text-danger">
+                    <i className="bi bi-bell-fill me-2"></i>
+                    Client Emergency SOS Alerts
+                  </h4>
+
+                  <p className="text-muted mb-0">
+                    Urgent help messages triggered by your clients during legal proceedings or emergencies.
+                  </p>
+                </div>
+
+                <span className="badge bg-danger text-white rounded-pill px-3 py-2 fs-6 shadow-sm">
+                  {activeSOSAlerts.length} Active Alert(s)
+                </span>
+              </div>
+
+              {mySOSAlerts.length === 0 ? (
+                <div className="text-center py-5">
+                  <i className="bi bi-shield-check display-3 text-muted"></i>
+                  <h5 className="fw-semibold mt-3">
+                    No Emergency Alerts Received
+                  </h5>
+
+                  <p className="text-muted mb-0">
+                    When your clients trigger an emergency SOS, their alerts and contact details will appear here immediately.
+                  </p>
+                </div>
+              ) : (
+                <div className="row g-4">
+                  {mySOSAlerts.map((sos) => {
+                    const isActive = (sos.status || "").toLowerCase() !== "resolved";
+
+                    return (
+                      <div className="col-lg-6" key={sos.id}>
+                        <div
+                          className={`card border rounded-4 h-100 shadow-sm ${isActive
+                              ? "border-danger bg-danger-subtle text-dark"
+                              : "bg-light"
+                            }`}
+                        >
+                          <div className="card-body p-4">
+
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                              <div>
+                                <span
+                                  className={`badge ${isActive ? "bg-danger text-white" : "bg-success text-white"
+                                    } me-2 mb-1`}
+                                >
+                                  {isActive ? "🚨 EMERGENCY ALERT" : "✓ RESOLVED"}
+                                </span>
+
+                                <h5 className="fw-bold mb-0 text-dark">
+                                  Client: {sos.userName || "Client"}
+                                </h5>
+                              </div>
+
+                              <small className="text-muted opacity-75" style={{ fontSize: "11px" }}>
+                                {new Date(sos.createdAt || Date.now()).toLocaleString()}
+                              </small>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-3 border mb-3">
+                              <small className="text-muted fw-bold d-block mb-1">
+                                Emergency Message:
+                              </small>
+
+                              <p className="mb-0 fw-semibold text-danger" style={{ fontSize: "15px" }}>
+                                "{sos.message || "EMERGENCY ALERT: Immediate legal assistance required!"}"
+                              </p>
+                            </div>
+
+                            <div className="row g-2 mb-3 small">
+                              <div className="col-md-6">
+                                <span className="text-muted d-block">Phone Contact:</span>
+                                {sos.userPhone ? (
+                                  <button
+                                    type="button"
+                                    className="btn btn-link btn-sm p-0 fw-bold text-danger text-decoration-none"
+                                    onClick={() => handleOpenCallModal(sos.userName, sos.userPhone, sos.userEmail)}
+                                  >
+                                    <i className="bi bi-telephone-fill me-1"></i>
+                                    {sos.userPhone}
+                                  </button>
+                                ) : (
+                                  <span className="text-muted">Not provided</span>
+                                )}
+                              </div>
+
+                              <div className="col-md-6">
+                                <span className="text-muted d-block">Client Email:</span>
+                                {sos.userEmail ? (
+                                  <a
+                                    href={`mailto:${sos.userEmail}`}
+                                    className="fw-bold text-dark text-decoration-none"
+                                  >
+                                    <i className="bi bi-envelope-fill me-1"></i>
+                                    {sos.userEmail}
+                                  </a>
+                                ) : (
+                                  <span className="text-muted">Not provided</span>
+                                )}
+                              </div>
+
+                              {sos.caseTitle && (
+                                <div className="col-12 mt-2">
+                                  <span className="text-muted">Associated Case:</span>{" "}
+                                  <strong className="text-dark">{sos.caseTitle}</strong>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="d-flex gap-2 border-top pt-3">
+                              {isActive && (
+                                <button
+                                  type="button"
+                                  className="btn btn-danger btn-sm rounded-pill flex-fill fw-bold shadow-sm"
+                                  onClick={() => {
+                                    resolveSOS(sos.id);
+                                    setMessage(`Emergency SOS from ${sos.userName} marked as resolved.`);
+                                    setTimeout(() => setMessage(""), 3000);
+                                  }}
+                                >
+                                  <i className="bi bi-check-circle-fill me-1"></i>
+                                  Mark Action Taken / Resolved
+                                </button>
+                              )}
+
+                              {sos.userPhone && (
+                                <button
+                                  type="button"
+                                  className="btn btn-outline-danger btn-sm rounded-pill fw-bold"
+                                  onClick={() => handleOpenCallModal(sos.userName, sos.userPhone, sos.userEmail)}
+                                >
+                                  <i className="bi bi-telephone-out-fill me-1"></i>
+                                  Call Client Now
+                                </button>
+                              )}
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+
+        {/* QUICK CALL & CONTACT MODAL */}
+        {callModalTarget && (
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.65)", zIndex: 1065 }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+                <div className="modal-header bg-danger text-white border-0 p-3 px-4">
+                  <h5 className="modal-title fw-bold">
+                    <i className="bi bi-telephone-out-fill me-2"></i>
+                    Call & Contact Client
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setCallModalTarget(null)}
+                  ></button>
+                </div>
+                <div className="modal-body p-4 text-center">
+                  <div className="avatar-circle mx-auto mb-3 bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center" style={{ width: "68px", height: "68px" }}>
+                    <i className="bi bi-person-fill fs-1"></i>
+                  </div>
+                  <h5 className="fw-bold mb-1">{callModalTarget.name || "Client"}</h5>
+                  <p className="text-muted small mb-3">Client Emergency & Consultation Contact</p>
+
+                  <div className="bg-light p-3 rounded-3 mb-4 border d-flex align-items-center justify-content-between">
+                    <span className="fs-4 fw-bold text-dark font-monospace">
+                      <i className="bi bi-telephone-fill text-danger me-2"></i>
+                      {callModalTarget.rawPhone}
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-outline-dark btn-sm rounded-pill fw-bold"
+                      onClick={() => {
+                        navigator.clipboard.writeText(callModalTarget.rawPhone);
+                        setMessage(`Copied ${callModalTarget.rawPhone} to clipboard!`);
+                        setTimeout(() => setMessage(""), 3000);
+                      }}
+                    >
+                      <i className="bi bi-copy me-1"></i> Copy
+                    </button>
+                  </div>
+
+                  <div className="d-grid gap-2">
+                    <a
+                      href={`tel:${callModalTarget.phone}`}
+                      className="btn btn-danger btn-lg rounded-pill fw-bold text-white shadow-sm"
+                    >
+                      <i className="bi bi-telephone-fill me-2"></i>
+                      Launch Mobile Phone Dialer
+                    </a>
+
+                    <a
+                      href={`https://wa.me/${callModalTarget.phone.replace(/^\+/, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-success btn-lg rounded-pill fw-bold text-white shadow-sm"
+                    >
+                      <i className="bi bi-whatsapp me-2"></i>
+                      Open WhatsApp Chat / Call
+                    </a>
+
+                    <a
+                      href={`https://meet.jit.si/LegalAssist-Room-Call-${Date.now().toString().slice(-6)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary btn-lg rounded-pill fw-bold text-white shadow-sm"
+                    >
+                      <i className="bi bi-camera-video-fill me-2"></i>
+                      Start Instant Web Video Call
+                    </a>
+                  </div>
+                </div>
+                <div className="modal-footer border-0 bg-light p-3 justify-content-center">
+                  <button
+                    type="button"
+                    className="btn btn-secondary rounded-pill px-4 fw-bold"
+                    onClick={() => setCallModalTarget(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CONTACT ADMIN MODAL */}
+        <ContactAdminModal
+          show={showContactAdminModal}
+          onClose={() => setShowContactAdminModal(false)}
+          currentUser={currentUser}
+          role="advocate"
+        />
 
       </div>
     </div>
