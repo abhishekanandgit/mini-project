@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useData } from "../context/DataContext";
 
 const AdminDashboard = () => {
-  const { users, approveAdvocate, rejectAdvocate } = useAuth();
+  const { users, approveAdvocate, rejectAdvocate, deleteUser } = useAuth();
 
   const {
     advocates,
@@ -11,11 +11,31 @@ const AdminDashboard = () => {
     cases,
     reviews,
     verifyAdvocate,
+    removeAdvocate,
     deleteReview,
+    getAdvocateRating,
+    supportTickets,
+    updateSupportTicketStatus,
+    deleteSupportTicket,
   } = useData();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [message, setMessage] = useState("");
+  const [viewDocModal, setViewDocModal] = useState(null);
+  const [ticketFilter, setTicketFilter] = useState("all");
+
+  const pendingTickets = useMemo(() => {
+    return (supportTickets || []).filter((t) => (t.status || "").toLowerCase() === "pending");
+  }, [supportTickets]);
+
+  const filteredTickets = useMemo(() => {
+    const list = supportTickets || [];
+    if (ticketFilter === "pending") return list.filter((t) => (t.status || "").toLowerCase() === "pending");
+    if (ticketFilter === "advocate") return list.filter((t) => (t.senderRole || "").toLowerCase() === "advocate");
+    if (ticketFilter === "user") return list.filter((t) => (t.senderRole || "").toLowerCase() === "user");
+    if (ticketFilter === "resolved") return list.filter((t) => (t.status || "").toLowerCase() === "resolved");
+    return list;
+  }, [supportTickets, ticketFilter]);
 
   const registeredAdvocates = useMemo(() => {
     return users.filter(
@@ -71,6 +91,36 @@ const AdminDashboard = () => {
     showMessage(
       `${advocate.name}'s advocate registration has been rejected.`
     );
+  };
+
+  const handleRevokeAdvocate = (advocate, reason = "bad user feedback") => {
+    if (
+      window.confirm(
+        `Are you sure you want to revoke approval for Advocate ${advocate.name} due to ${reason}?`
+      )
+    ) {
+      verifyAdvocate(advocate.id, "rejected");
+      rejectAdvocate(advocate.id);
+
+      showMessage(
+        `Approval revoked for ${advocate.name} due to ${reason}. Account status set to rejected.`
+      );
+    }
+  };
+
+  const handleDeleteAdvocate = (advocate) => {
+    if (
+      window.confirm(
+        `Are you sure you want to permanently remove Advocate ${advocate.name} from LegalAssist?`
+      )
+    ) {
+      deleteUser(advocate.id);
+      removeAdvocate(advocate.id);
+
+      showMessage(
+        `Advocate ${advocate.name} has been permanently removed from the platform.`
+      );
+    }
   };
 
   return (
@@ -183,6 +233,25 @@ const AdminDashboard = () => {
               >
                 <i className="bi bi-star-fill text-warning me-1"></i>
                 Reviews & Ratings ({reviews?.length || 0})
+              </button>
+
+              <button
+                className={`btn rounded-pill ${
+                  activeTab === "support"
+                    ? "btn-dark"
+                    : "btn-outline-dark"
+                }`}
+                onClick={() =>
+                  setActiveTab("support")
+                }
+              >
+                <i className="bi bi-headset me-1 text-info"></i>
+                Support & Site Issues
+                {pendingTickets.length > 0 && (
+                  <span className="badge bg-warning text-dark ms-2">
+                    {pendingTickets.length}
+                  </span>
+                )}
               </button>
 
             </div>
@@ -468,13 +537,71 @@ const AdminDashboard = () => {
                                 {advocate.fees ?? 0}
                               </p>
 
-                              <p className="mb-0">
+                              <p className="mb-2">
                                 <strong>
                                   Qualifications:
                                 </strong>{" "}
                                 {advocate.qualifications ||
                                   "Not provided"}
                               </p>
+
+                              {/* Verification Documents Section */}
+                              <div className="bg-light p-3 rounded-3 mt-3 border">
+                                <small className="text-muted d-block fw-bold mb-2">
+                                  <i className="bi bi-file-earmark-check-fill text-primary me-1"></i>
+                                  Verification Certificates & Documents:
+                                </small>
+
+                                <div className="d-flex flex-column gap-2">
+                                  {/* 1. ID Proof */}
+                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 rounded border">
+                                    <small className="fw-semibold text-dark">
+                                      1. Govt ID Proof:
+                                    </small>
+                                    {advocate.idProofDoc ? (
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-primary btn-sm rounded-pill py-0 px-2 fw-bold"
+                                        onClick={() => setViewDocModal({
+                                          title: "Government ID Proof (Aadhaar / Passport / Voter ID)",
+                                          doc: advocate.idProofDoc,
+                                          advocateName: advocate.name,
+                                          advocateObj: advocate
+                                        })}
+                                      >
+                                        <i className="bi bi-eye-fill me-1"></i>
+                                        View ID Proof
+                                      </button>
+                                    ) : (
+                                      <span className="badge bg-secondary">Not Uploaded</span>
+                                    )}
+                                  </div>
+
+                                  {/* 2. State Bar Council Card */}
+                                  <div className="d-flex align-items-center justify-content-between bg-white p-2 rounded border">
+                                    <small className="fw-semibold text-dark">
+                                      2. Bar Council ID Card:
+                                    </small>
+                                    {advocate.barCouncilDoc ? (
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-primary btn-sm rounded-pill py-0 px-2 fw-bold"
+                                        onClick={() => setViewDocModal({
+                                          title: "State Bar Council Identity Card / Certificate",
+                                          doc: advocate.barCouncilDoc,
+                                          advocateName: advocate.name,
+                                          advocateObj: advocate
+                                        })}
+                                      >
+                                        <i className="bi bi-eye-fill me-1"></i>
+                                        View Bar ID Card
+                                      </button>
+                                    ) : (
+                                      <span className="badge bg-secondary">Not Uploaded</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
 
                             </div>
 
@@ -551,53 +678,155 @@ const AdminDashboard = () => {
                     <thead>
                       <tr>
                         <th>Name</th>
-                        <th>Email</th>
+                        <th>Email & Contact</th>
                         <th>Specialization</th>
                         <th>Experience</th>
+                        <th>User Rating & Feedback</th>
                         <th>Status</th>
+                        <th className="text-end">Actions</th>
                       </tr>
                     </thead>
 
                     <tbody>
                       {registeredAdvocates.map(
-                        (advocate) => (
-                          <tr key={advocate.id}>
-                            <td>
-                              <strong>
-                                {advocate.name}
-                              </strong>
-                            </td>
+                        (advocate) => {
+                          const ratingStats = getAdvocateRating(advocate.id);
+                          const badReviews = ratingStats.reviews.filter(
+                            (r) => Number(r.rating) <= 2
+                          );
 
-                            <td>
-                              {advocate.email}
-                            </td>
+                          return (
+                            <tr key={advocate.id}>
+                              <td>
+                                <div>
+                                  <strong>{advocate.name}</strong>
+                                  {advocate.barId && (
+                                    <div className="small text-muted">
+                                      Bar ID: {advocate.barId}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
 
-                            <td>
-                              {advocate.specialization ||
-                                "Not specified"}
-                            </td>
+                              <td>
+                                <div>{advocate.email}</div>
+                                {advocate.phone && (
+                                  <div className="small text-muted">
+                                    {advocate.phone}
+                                  </div>
+                                )}
+                              </td>
 
-                            <td>
-                              {advocate.experience ?? 0} years
-                            </td>
+                              <td>
+                                {advocate.specialization || "Not specified"}
+                              </td>
 
-                            <td>
-                              <span
-                                className={`badge ${
-                                  advocate.status ===
-                                  "verified"
-                                    ? "bg-success"
-                                    : advocate.status ===
-                                      "rejected"
-                                    ? "bg-danger"
-                                    : "bg-warning text-dark"
-                                }`}
-                              >
-                                {advocate.status}
-                              </span>
-                            </td>
-                          </tr>
-                        )
+                              <td>
+                                {advocate.experience ?? 0} years
+                              </td>
+
+                              <td>
+                                <div className="d-flex align-items-center flex-wrap gap-1">
+                                  <span className="badge bg-warning text-dark rounded-pill px-2">
+                                    ★ {ratingStats.avgRating} ({ratingStats.count})
+                                  </span>
+                                  {badReviews.length > 0 && (
+                                    <span className="badge bg-danger text-white rounded-pill px-2" title={`${badReviews.length} bad review(s) submitted`}>
+                                      <i className="bi bi-exclamation-triangle-fill me-1"></i>
+                                      {badReviews.length} Bad Review{badReviews.length > 1 ? "s" : ""}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td>
+                                <span
+                                  className={`badge ${
+                                    advocate.status === "verified"
+                                      ? "bg-success"
+                                      : advocate.status === "rejected"
+                                      ? "bg-danger"
+                                      : "bg-warning text-dark"
+                                  }`}
+                                >
+                                  {advocate.status}
+                                </span>
+                              </td>
+
+                              <td className="text-end">
+                                <div className="d-flex gap-2 justify-content-end">
+                                  {advocate.status === "verified" && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-warning btn-sm rounded-pill"
+                                        title="Revoke advocate approval (e.g. after bad reviews)"
+                                        onClick={() =>
+                                          handleRevokeAdvocate(
+                                            advocate,
+                                            badReviews.length > 0
+                                              ? "bad user reviews"
+                                              : "admin review"
+                                          )
+                                        }
+                                      >
+                                        <i className="bi bi-person-x-fill me-1"></i>
+                                        Revoke Approval
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-danger btn-sm rounded-pill"
+                                        title="Permanently remove advocate account"
+                                        onClick={() => handleDeleteAdvocate(advocate)}
+                                      >
+                                        <i className="bi bi-trash me-1"></i>
+                                        Remove
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {advocate.status === "pending" && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="btn btn-success btn-sm rounded-pill"
+                                        onClick={() => handleApprove(advocate)}
+                                      >
+                                        Approve
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-danger btn-sm rounded-pill"
+                                        onClick={() => handleReject(advocate)}
+                                      >
+                                        Reject
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {advocate.status === "rejected" && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-success btn-sm rounded-pill"
+                                        onClick={() => handleApprove(advocate)}
+                                      >
+                                        Re-Approve
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-danger btn-sm rounded-pill"
+                                        onClick={() => handleDeleteAdvocate(advocate)}
+                                      >
+                                        Delete
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        }
                       )}
                     </tbody>
                   </table>
@@ -875,47 +1104,103 @@ const AdminDashboard = () => {
                     </thead>
 
                     <tbody>
-                      {reviews.map((rev) => (
-                        <tr key={rev.id}>
-                          <td>
-                            <strong>{rev.userName || "Client"}</strong>
-                          </td>
+                      {reviews.map((rev) => {
+                        const targetAdv = registeredAdvocates.find(
+                          (a) =>
+                            String(a.id) === String(rev.advocateId) ||
+                            a.name?.toLowerCase() === rev.advocateName?.toLowerCase()
+                        );
+                        const isBadReview = Number(rev.rating) <= 2;
 
-                          <td>
-                            <span className="badge bg-secondary">
-                              {rev.advocateName || "Advocate"}
-                            </span>
-                          </td>
+                        return (
+                          <tr key={rev.id}>
+                            <td>
+                              <strong>{rev.userName || "Client"}</strong>
+                            </td>
 
-                          <td>
-                            <span className="badge bg-warning text-dark rounded-pill px-2">
-                              ★ {rev.rating || 5} / 5
-                            </span>
-                          </td>
+                            <td>
+                              <div>
+                                <span className="badge bg-secondary">
+                                  {rev.advocateName || "Advocate"}
+                                </span>
+                                {targetAdv && (
+                                  <div className="mt-1">
+                                    <span
+                                      className={`badge ${
+                                        targetAdv.status === "verified"
+                                          ? "bg-success"
+                                          : targetAdv.status === "rejected"
+                                          ? "bg-danger"
+                                          : "bg-warning text-dark"
+                                      }`}
+                                      style={{ fontSize: "0.7rem" }}
+                                    >
+                                      {targetAdv.status}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
 
-                          <td style={{ maxWidth: "300px" }}>
-                            <p className="mb-0 small text-dark">{rev.comment || "(No comment)"}</p>
-                          </td>
+                            <td>
+                              <span
+                                className={`badge ${
+                                  isBadReview
+                                    ? "bg-danger text-white"
+                                    : "bg-warning text-dark"
+                                } rounded-pill px-2`}
+                              >
+                                ★ {rev.rating || 5} / 5
+                              </span>
+                            </td>
 
-                          <td className="small text-muted">
-                            {new Date(rev.createdAt || Date.now()).toLocaleDateString()}
-                          </td>
+                            <td style={{ maxWidth: "300px" }}>
+                              <p className="mb-0 small text-dark">
+                                {rev.comment || "(No comment)"}
+                              </p>
+                            </td>
 
-                          <td className="text-end">
-                            <button
-                              type="button"
-                              className="btn btn-outline-danger btn-sm rounded-pill"
-                              onClick={() => {
-                                deleteReview(rev.id);
-                                showMessage("Client review deleted successfully.");
-                              }}
-                            >
-                              <i className="bi bi-trash me-1"></i>
-                              Delete Review
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                            <td className="small text-muted">
+                              {new Date(
+                                rev.createdAt || Date.now()
+                              ).toLocaleDateString()}
+                            </td>
+
+                            <td className="text-end">
+                              <div className="d-flex gap-2 justify-content-end">
+                                {targetAdv && targetAdv.status === "verified" && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-warning btn-sm rounded-pill"
+                                    title="Revoke this advocate's approval due to bad review"
+                                    onClick={() =>
+                                      handleRevokeAdvocate(
+                                        targetAdv,
+                                        `bad review ("${rev.comment || 'Low rating'}")`
+                                      )
+                                    }
+                                  >
+                                    <i className="bi bi-person-x-fill me-1"></i>
+                                    Revoke Advocate
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  className="btn btn-outline-danger btn-sm rounded-pill"
+                                  onClick={() => {
+                                    deleteReview(rev.id);
+                                    showMessage("Client review deleted successfully.");
+                                  }}
+                                >
+                                  <i className="bi bi-trash me-1"></i>
+                                  Delete Review
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -925,7 +1210,254 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* SUPPORT & SITE ISSUES TAB */}
+        {activeTab === "support" && (
+          <div className="card border-0 shadow-sm rounded-4">
+            <div className="card-body p-4">
+
+              <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                  <h4 className="fw-bold mb-1">
+                    <i className="bi bi-headset text-warning me-2"></i>
+                    Support & Site Issues Reported
+                  </h4>
+                  <p className="text-muted mb-0">
+                    Messages & technical issues submitted by Advocates and Users.
+                  </p>
+                </div>
+
+                <div className="d-flex gap-2 align-items-center">
+                  <span className="badge bg-warning text-dark rounded-pill px-3 py-2">
+                    {pendingTickets.length} Pending Issues
+                  </span>
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div className="d-flex gap-2 mb-4 flex-wrap bg-light p-2 rounded-3 border">
+                <button
+                  className={`btn btn-sm rounded-pill ${ticketFilter === "all" ? "btn-dark" : "btn-outline-dark"}`}
+                  onClick={() => setTicketFilter("all")}
+                >
+                  All Messages ({supportTickets?.length || 0})
+                </button>
+                <button
+                  className={`btn btn-sm rounded-pill ${ticketFilter === "pending" ? "btn-dark" : "btn-outline-dark"}`}
+                  onClick={() => setTicketFilter("pending")}
+                >
+                  Pending ({pendingTickets.length})
+                </button>
+                <button
+                  className={`btn btn-sm rounded-pill ${ticketFilter === "advocate" ? "btn-dark" : "btn-outline-dark"}`}
+                  onClick={() => setTicketFilter("advocate")}
+                >
+                  From Advocates ({(supportTickets || []).filter(t => t.senderRole === 'advocate').length})
+                </button>
+                <button
+                  className={`btn btn-sm rounded-pill ${ticketFilter === "user" ? "btn-dark" : "btn-outline-dark"}`}
+                  onClick={() => setTicketFilter("user")}
+                >
+                  From Users ({(supportTickets || []).filter(t => t.senderRole === 'user').length})
+                </button>
+                <button
+                  className={`btn btn-sm rounded-pill ${ticketFilter === "resolved" ? "btn-dark" : "btn-outline-dark"}`}
+                  onClick={() => setTicketFilter("resolved")}
+                >
+                  Resolved ({(supportTickets || []).filter(t => t.status === 'Resolved').length})
+                </button>
+              </div>
+
+              {filteredTickets.length === 0 ? (
+                <div className="text-center py-5">
+                  <i className="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+                  <h5 className="fw-semibold">No messages found</h5>
+                  <p className="text-muted mb-0">No support tickets match the selected filter.</p>
+                </div>
+              ) : (
+                <div className="row g-4">
+                  {filteredTickets.map((ticket) => (
+                    <div className="col-lg-6" key={ticket.id}>
+                      <div className="card border rounded-4 h-100 shadow-sm">
+                        <div className="card-body p-4">
+
+                          <div className="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                              <span className={`badge mb-2 me-2 ${ticket.senderRole === "advocate" ? "bg-primary" : "bg-dark"}`}>
+                                <i className={`bi ${ticket.senderRole === "advocate" ? "bi-award-fill" : "bi-person-fill"} me-1`}></i>
+                                {ticket.senderRole === "advocate" ? "Advocate" : "User / Client"}
+                              </span>
+                              <span className="badge bg-light text-dark border">
+                                {ticket.category || "General"}
+                              </span>
+                              <h5 className="fw-bold mb-1 mt-2">{ticket.subject}</h5>
+                            </div>
+                            <span
+                              className={`badge rounded-pill px-3 py-2 ${
+                                ticket.status === "Resolved"
+                                  ? "bg-success"
+                                  : ticket.status === "In Progress"
+                                  ? "bg-info text-dark"
+                                  : "bg-warning text-dark"
+                              }`}
+                            >
+                              {ticket.status || "Pending"}
+                            </span>
+                          </div>
+
+                          <div className="bg-light p-3 rounded-3 mb-3 border">
+                            <p className="mb-0 small text-dark font-monospace" style={{ whiteSpace: "pre-wrap" }}>
+                              "{ticket.message}"
+                            </p>
+                          </div>
+
+                          <div className="small text-muted mb-3 d-flex flex-column gap-1">
+                            <div><strong>Sender:</strong> {ticket.senderName} ({ticket.senderEmail || "No Email"})</div>
+                            <div><strong>Submitted:</strong> {new Date(ticket.createdAt).toLocaleString()}</div>
+                          </div>
+
+                          <hr />
+
+                          <div className="d-flex gap-2 flex-wrap">
+                            {ticket.status !== "Resolved" && (
+                              <button
+                                className="btn btn-success btn-sm rounded-pill fw-bold flex-fill"
+                                onClick={() => {
+                                  updateSupportTicketStatus(ticket.id, "Resolved");
+                                  showMessage(`Ticket marked as Resolved.`);
+                                }}
+                              >
+                                <i className="bi bi-check-circle-fill me-1"></i>
+                                Mark Resolved
+                              </button>
+                            )}
+
+                            {ticket.status !== "In Progress" && ticket.status !== "Resolved" && (
+                              <button
+                                className="btn btn-outline-info btn-sm rounded-pill fw-bold text-dark flex-fill"
+                                onClick={() => {
+                                  updateSupportTicketStatus(ticket.id, "In Progress");
+                                  showMessage(`Ticket status set to In Progress.`);
+                                }}
+                              >
+                                Mark In Progress
+                              </button>
+                            )}
+
+                            <button
+                              className="btn btn-outline-danger btn-sm rounded-pill fw-bold"
+                              onClick={() => {
+                                if (window.confirm("Are you sure you want to delete this message?")) {
+                                  deleteSupportTicket(ticket.id);
+                                  showMessage("Ticket deleted.");
+                                }
+                              }}
+                            >
+                              <i className="bi bi-trash me-1"></i> Delete
+                            </button>
+                          </div>
+
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+
       </div>
+
+        {/* DOCUMENT PREVIEW MODAL */}
+        {viewDocModal && (
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.65)", zIndex: 1065 }}
+          >
+            <div className="modal-dialog modal-dialog-centered modal-lg">
+              <div className="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+                <div className="modal-header bg-dark text-white p-3 px-4">
+                  <h5 className="modal-title fw-bold">
+                    <i className="bi bi-shield-check text-warning me-2"></i>
+                    {viewDocModal.title}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setViewDocModal(null)}
+                  ></button>
+                </div>
+                <div className="modal-body p-4 text-center">
+                  <p className="text-muted mb-3">
+                    Uploaded by <strong>{viewDocModal.advocateName}</strong> (File: {viewDocModal.doc?.name || "Document"})
+                  </p>
+
+                  <div className="bg-light p-3 rounded-3 border mb-4 text-center overflow-auto" style={{ maxHeight: "450px" }}>
+                    {viewDocModal.doc?.type?.includes("image") || viewDocModal.doc?.data?.startsWith("data:image") ? (
+                      <img
+                        src={viewDocModal.doc.data}
+                        alt={viewDocModal.title}
+                        className="img-fluid rounded shadow-sm border"
+                        style={{ maxHeight: "400px", objectFit: "contain" }}
+                      />
+                    ) : viewDocModal.doc?.type?.includes("pdf") || viewDocModal.doc?.data?.startsWith("data:application/pdf") ? (
+                      <iframe
+                        src={viewDocModal.doc.data}
+                        title={viewDocModal.title}
+                        width="100%"
+                        height="400px"
+                        className="rounded border"
+                      ></iframe>
+                    ) : (
+                      <div className="py-5">
+                        <i className="bi bi-file-earmark-text display-1 text-secondary mb-3 d-block"></i>
+                        <h6 className="fw-bold">{viewDocModal.doc?.name || "Certificate File"}</h6>
+                        <p className="text-muted small">File format: {viewDocModal.doc?.type || "Binary document"}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="d-flex justify-content-center gap-3">
+                    <a
+                      href={viewDocModal.doc?.data}
+                      download={viewDocModal.doc?.name || "Advocate-Verification-Document"}
+                      className="btn btn-outline-dark rounded-pill fw-bold px-4"
+                    >
+                      <i className="bi bi-download me-2"></i>
+                      Download Document
+                    </a>
+
+                    {viewDocModal.advocateObj && (
+                      <button
+                        type="button"
+                        className="btn btn-success rounded-pill fw-bold px-4"
+                        onClick={() => {
+                          handleApprove(viewDocModal.advocateObj);
+                          setViewDocModal(null);
+                        }}
+                      >
+                        <i className="bi bi-check-circle-fill me-2"></i>
+                        Approve Advocate Account
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="modal-footer border-0 bg-light p-3 justify-content-center">
+                  <button
+                    type="button"
+                    className="btn btn-secondary rounded-pill px-4 fw-bold"
+                    onClick={() => setViewDocModal(null)}
+                  >
+                    Close Preview
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
     </div>
   );
 };
