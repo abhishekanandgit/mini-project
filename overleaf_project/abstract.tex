@@ -1,0 +1,17 @@
+\chapter*{ABSTRACT}
+\addcontentsline{toc}{chapter}{ABSTRACT}
+
+Finding verified legal professionals, scheduling consultation appointments, understanding complex legal procedures, and tracking ongoing case progress often present significant difficulties for non-technical clients and first-time users. Conventional manual approaches frequently rely on fragmented tools such as individual phone calls, manual calendar coordination, paper-based documents, and disconnected messaging services. To address these challenges, this project presents \textbf{LegalAssist}, a unified digital platform designed to streamline advocate discovery, appointment scheduling, case stage tracking, and AI-assisted legal guidance.
+
+LegalAssist provides a robust role-based infrastructure supporting three distinct user profiles: Clients, Advocates, and Administrators. Administrators oversee platform safety through a verification workflow that audits advocate credentials before exposing them as trusted legal experts. Verified advocates gain access to a dedicated dashboard allowing them to publish weekly availability schedules. Clients can browse verified advocate profiles, view real-time available time slots, book consultation appointments, and upload relevant legal documents. The platform enforces strict concurrency controls to prevent double-booking of identical time slots.
+
+Furthermore, LegalAssist features an integrated Case Management module that tracks the lifecycle of active cases through structured stages (such as Consultation, Investigation, Hearing, Judgment, and Case Closure). It incorporates an AI Legal Assistant chatbot designed to provide layman-friendly legal guidance and explanation of legal terms, alongside an Emergency SOS alert mechanism for critical assistance. 
+
+The system is developed using modern full-stack web architecture. The frontend is built using \textbf{React} with \textbf{Vite}, styled responsively using \textbf{Bootstrap}, and managed client-side using \textbf{React Router}. The backend service is engineered with \textbf{Node.js} and \textbf{Express.js}, exposing RESTful API endpoints. Persistent data storage is managed via a dual-engine architecture combining a local persistent JSON database engine with synchronous cloud integration using \textbf{MongoDB Atlas}. 
+
+By establishing a seamless workflow spanning from advocate verification to transparent appointment scheduling and ongoing case support, LegalAssist eliminates fragmentation and enhances accessibility in legal services.
+
+\vspace{0.8cm}
+\noindent \textbf{Keywords:} Legal Management, Advocate Verification, Appointment Booking, Case Tracking, React, Express.js, MongoDB Atlas, AI Legal Assistant, Emergency SOS.
+
+\clearpage
