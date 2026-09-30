@@ -1,0 +1,59 @@
+\chapter{Introduction}
+
+Navigating the legal domain is often a daunting experience for individuals seeking legal aid. The process typically requires identifying qualified advocates, verifying their credentials, establishing availability, booking consultation slots, and tracking case proceedings over extended periods. In traditional legal consultation workflows, these processes occur in isolation across disconnected communication channels such as phone calls, emails, messaging platforms, and paper files.
+
+As the volume of legal inquiries and court proceedings grows, managing legal consultations and case documentation manually becomes inefficient and prone to miscommunication. Clients frequently encounter difficulties in confirming advocate availability, keeping track of upcoming hearing dates, and comprehending specialized legal terminology. Conversely, legal practitioners face administrative overhead when managing appointment schedules, reviewing client preliminary intake forms, and maintaining updated case timelines for multiple clients simultaneously.
+
+\textbf{LegalAssist} is proposed as an integrated web-based platform engineered to unite client consultation, advocate appointment scheduling, case tracking, and intelligent legal assistance into a centralized ecosystem. The platform enables secure role-based access for clients, advocates, and administrators, establishing transparency and reliability from initial discovery to case resolution.
+
+The system incorporates modern web technologies to deliver a responsive, intuitive interface paired with a high-performance backend API service. By offering verified advocate profiles, real-time slot selection, case timeline visualization, an AI-powered legal information assistant, and emergency SOS features, LegalAssist addresses the critical bottlenecks inherent in conventional legal services.
+
+\section{Scope}
+The scope of LegalAssist encompasses the end-to-end digital management of legal consultations and case lifecycles. The key operational areas include:
+\begin{itemize}
+    \item \textbf{Role-Based Authentication \& Profile Management:} Secure onboarding for Clients, Advocates, and System Administrators with granular permissions.
+    \item \textbf{Advocate Verification Workflow:} Administrative oversight to review bar council registrations, qualifications, and experience before publishing advocate profiles.
+    \item \textbf{Dynamic Availability \& Slot Booking:} Advocate-controlled weekly time slot configuration paired with real-time slot reservation and conflict prevention for clients.
+    \item \textbf{Case Lifecycle \& Document Sharing:} Interactive stage tracking (Filed, Consultation, Investigation, Hearing, Judgment, Completed) and secure document attachment.
+    \item \textbf{Intelligent Assistance \& Emergency Features:} An integrated AI chatbot for explaining legal concepts and an emergency SOS dispatch system for urgent legal aid.
+\end{itemize}
+
+\section{Relevance}
+The relevance of LegalAssist stems from the fragmented nature of conventional legal service discovery and management:
+\begin{enumerate}
+    \item \textbf{Enhanced Trust:} Client-facing advocate directories are guarded by administrative verification, reducing exposure to unverified or fraudulent claims.
+    \item \textbf{Transparent Scheduling:} Real-time slot visibility eliminates endless phone coordination and scheduling conflicts.
+    \item \textbf{Centralized Case Records:} Shared document upload and milestone tracking keep clients informed without requiring frequent manual status inquiries.
+    \item \textbf{Software Engineering Application:} The project synthesizes key concepts of modular frontend development (React), REST API architecture (Express.js), role-based middleware, and hybrid data persistence (JSON database engine and MongoDB Atlas).
+\end{enumerate}
+
+\section{Problem Statement}
+Clients seeking legal assistance often face difficulty in discovering verified advocates, coordinating appointment schedules without real-time availability, understanding legal terminology, and tracking ongoing case progress across disconnected channels. 
+
+The problem addressed by this project is the lack of a unified, transparent, and secure digital platform that seamlessly integrates advocate verification, slot-based consultation scheduling, interactive case tracking, and legal AI assistance into a single automated workflow.
+
+\section{Objectives}
+The primary objective of LegalAssist is to develop a web-based advocate appointment and case management system that optimizes the consultation lifecycle for clients and legal professionals.
+
+Specific objectives include:
+\begin{enumerate}
+    \item To design and implement role-based authentication for Clients, Advocates, and Administrators.
+    \item To implement an administrative verification workflow for reviewing advocate credentials.
+    \item To provide a dynamic schedule management interface for advocates to publish time slots.
+    \item To enable clients to search advocates, view available slots, book appointments, and prevent double-booking.
+    \item To build a case stage timeline tracking system with document-sharing capabilities.
+    \item To integrate an AI Legal Assistant for answering basic legal inquiries and an Emergency SOS feature.
+    \item To implement hybrid data storage supporting local JSON persistence and cloud synchronization with MongoDB Atlas.
+\end{enumerate}
+
+\section{Organisation of the Report}
+This report is organized into five chapters:
+\begin{itemize}
+    \item \textbf{Chapter 1} introduces the problem domain, project scope, relevance, problem statement, and objectives.
+    \item \textbf{Chapter 2} presents the system study, analyzing existing solutions, literature survey, proposed system features, and software/hardware requirements.
+    \item \textbf{Chapter 3} details the development methodology, detailing the Agile Scrum framework, sprint progression, and development stages.
+    \item \textbf{Chapter 4} presents system design, including system architecture, use case models, Data Flow Diagrams (DFDs), activity diagrams, database schema, UI design, and security.
+    \item \textbf{Chapter 5} discusses implementation and testing, providing technical details of frontend/backend modules, REST endpoints, and functional test cases.
+\end{itemize}
+
+\clearpage
