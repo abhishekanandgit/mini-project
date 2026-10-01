@@ -1,0 +1,106 @@
+\chapter{System Study}
+
+The system study phase analyzes existing methods of obtaining legal advice and managing advocate consultations, establishing the theoretical and empirical foundation for LegalAssist.
+
+\section{Existing System}
+Currently, clients discover legal professionals primarily through personal referrals, local directories, or generic online search engines. Scheduling a consultation involves direct telephone conversations or manual email exchanges to identify mutually agreeable dates and times. Case status tracking relies predominantly on periodic phone updates or physical court visits, while legal documents are shared physically or via general-purpose email attachments.
+
+\subsection{Limitations of the Existing System}
+The existing approaches exhibit severe operational drawbacks:
+\begin{enumerate}
+    \item \textbf{Fragmented Channels:} Discovery, booking, document exchange, and case tracking take place across separate platforms.
+    \item \textbf{Lack of Real-Time Availability:} Clients cannot view an advocate's free time slots directly, resulting in repeated scheduling collisions.
+    \item \textbf{Verification Concerns:} First-time clients lack reliable mechanisms to independently verify an advocate's bar council registration and practice background.
+    \item \textbf{Opaque Case Progress:} Clients receive minimal visibility into internal case stages, creating anxiety and ambiguity.
+    \item \textbf{Absence of Immediate Guidance:} Laypersons struggle with legal jargon and lack quick access to basic procedural information prior to consultation.
+\end{enumerate}
+
+\section{Literature Survey}
+A survey of recent literature in legal technology and artificial intelligence highlights both recent advancements and existing gaps in client-facing legal systems.
+
+\begin{table}[h!]
+    \centering
+    \caption{Comparative Literature Survey}
+    \label{tab:literature_survey}
+    \small
+    \begin{tabular}{p{3.5cm} p{3.2cm} p{1.2cm} p{6.5cm}}
+        \toprule
+        \textbf{Domain / Platform} & \textbf{Authors} & \textbf{Year} & \textbf{Key Research Reference / Contribution} \\
+        \midrule
+        Legal Assist AI & Gupta et al. & 2025 & Transformer-based legal assistance focused on Indian legal information retrieval and domain question answering. \\
+        \addlinespace
+        LawPal & Panchal et al. & 2025 & RAG-based legal chatbot designed to improve legal accessibility and grounded natural language responses. \\
+        \addlinespace
+        Legal QA for Lay Users & Büttner \& Habernal & 2024 & Demonstrates the intrinsic difficulty of answering real-world legal questions for non-expert users. \\
+        \addlinespace
+        Groundedness of Legal QA & Trautmann et al. & 2024 & Emphasizes accuracy and trustworthiness requirements when AI models handle high-stakes legal queries. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent \textbf{Comparative View:} While existing studies concentrate on automated question answering or standalone retrieval-augmented generation (RAG) models, LegalAssist bridges the gap by combining intelligent legal guidance directly with verified advocate appointments and end-to-end case management workflows.
+
+\section{Proposed System}
+LegalAssist addresses existing limitations by establishing an integrated digital hub. The proposed system features three role-based portals (Client, Advocate, Admin), dynamic availability publishing, atomic slot locking, interactive case timelines, document uploads, AI assistance, and emergency SOS response.
+
+\subsection{Major Functionalities}
+\begin{enumerate}
+    \item \textbf{Role-Based Authentication:} Separate registration and authentication pathways for Users (Clients), Advocates, and System Administrators.
+    \item \textbf{Admin Advocate Verification:} Administrative verification panel allowing approval or rejection of advocate registration requests.
+    \item \textbf{Advocate Profile \& Availability Management:} Verified advocates maintain profile details, specializations, consultation fees, and weekly available time slots.
+    \item \textbf{Real-Time Slot Reservation:} Clients search verified advocates, inspect free slots for specific dates, and submit appointment requests. The engine locks slots upon reservation.
+    \item \textbf{Case Stage Timeline:} Automated transition of approved consultations into tracked cases with defined milestones.
+    \item \textbf{Document Exchange:} Secure attachment of consultation briefs, case evidence, and reports.
+    \item \textbf{AI Legal Assistant \& Emergency SOS:} Instant chat interface for legal guidance and one-touch SOS alert generation for critical situations.
+\end{enumerate}
+
+\section{Development Methodology}
+The project follows an Agile development methodology with iterative development sprints, allowing continuous testing and refinement of frontend UI components, Express API logic, and data persistence modules.
+
+\section{Requirement Analysis}
+System requirements are categorized into software and hardware requirements needed for development and execution.
+
+\subsection{Software Requirements}
+\begin{table}[h!]
+    \centering
+    \caption{Software Requirements}
+    \label{tab:software_requirements}
+    \begin{tabular}{p{5cm} p{9cm}}
+        \toprule
+        \textbf{Software / Technology} & \textbf{Purpose / Description} \\
+        \midrule
+        Operating System & Windows 10 / 11 \\
+        Code Editor & Visual Studio Code \\
+        Frontend Framework & React.js with Vite \\
+        UI Styling & Bootstrap 5 \& Bootstrap Icons \\
+        Client-Side Routing & React Router v6 \\
+        Backend Runtime & Node.js (v18+) with Express.js \\
+        Database Services & Local Persistent JSON Engine / MongoDB Atlas Sync \\
+        Version Control & Git \& GitHub \\
+        Web Browser & Google Chrome / Mozilla Firefox \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Hardware Requirements}
+\begin{table}[h!]
+    \centering
+    \caption{Hardware Requirements}
+    \label{tab:hardware_requirements}
+    \begin{tabular}{p{5cm} p{9cm}}
+        \toprule
+        \textbf{Hardware Component} & \textbf{Minimum Specification} \\
+        \midrule
+        Processor & Dual-core Intel / AMD 2.0 GHz or higher \\
+        System Memory (RAM) & Minimum 4 GB (8 GB recommended) \\
+        Storage & 10 GB available solid-state drive (SSD) storage \\
+        Display Resolution & 1366 $\times$ 768 or higher \\
+        Network Interface & Standard Broadband Internet Connection for Cloud Sync \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Summary}
+The system study identified critical fragmentation in current legal workflows and established the functional, software, and hardware requirements for LegalAssist.
+
+\clearpage

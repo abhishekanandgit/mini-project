@@ -66,15 +66,17 @@ function Navbar() {
               </Link>
             </li>
 
-            {/* CONTACT */}
-            <li className="nav-item">
-              <Link
-                className="nav-link"
-                to="/contact"
-              >
-                Contact
-              </Link>
-            </li>
+            {/* CONTACT (Not shown for Admin) */}
+            {currentUser?.role !== "admin" && (
+              <li className="nav-item">
+                <Link
+                  className="nav-link"
+                  to="/contact"
+                >
+                  Contact
+                </Link>
+              </li>
+            )}
 
             {/* LOGGED-IN USER DASHBOARD */}
             {currentUser && (

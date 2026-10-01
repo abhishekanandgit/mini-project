@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 
 function SOSModal({ caseData, onClose }) {
   const { currentUser } = useAuth();
+  const { triggerEmergencySOS } = useData();
 
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
 
-  const handleSendSOS = () => {
-    if (!caseData?.advocateId) {
-      alert("No advocate is assigned to this case.");
+  const handleSendSOS = async () => {
+    const advocateId = caseData?.advocateId;
+    if (!advocateId) {
+      alert("No advocate is assigned to this case/appointment.");
       return;
     }
 
@@ -18,33 +21,22 @@ function SOSModal({ caseData, onClose }) {
       return;
     }
 
-    const existingAlerts =
-      JSON.parse(localStorage.getItem("legalassist_sos_alerts")) || [];
+    await triggerEmergencySOS({
+      userId: currentUser?.id || "user",
+      userName: currentUser?.name || "Client",
+      userEmail: currentUser?.email || "",
+      userPhone: currentUser?.phone || "",
 
-    const sosAlert = {
-      id: Date.now().toString(),
+      advocateId: String(advocateId),
+      advocateName: caseData?.advocateName || "Advocate",
+      advocateEmail: caseData?.advocateEmail || "",
 
-      userId: currentUser?.id,
-      userName: currentUser?.name,
-      userEmail: currentUser?.email,
-
-      advocateId: caseData.advocateId,
-      advocateName: caseData.advocateName,
-
-      caseId: caseData.id,
-      caseTitle: caseData.title,
+      caseId: caseData?.id || "",
+      caseTitle: caseData?.title || caseData?.reason || "Emergency Alert",
 
       message: message.trim(),
-
-      status: "unread",
-
-      createdAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem(
-      "legalassist_sos_alerts",
-      JSON.stringify([...existingAlerts, sosAlert])
-    );
+      status: "active",
+    });
 
     setSent(true);
   };

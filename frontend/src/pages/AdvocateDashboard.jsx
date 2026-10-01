@@ -12,10 +12,13 @@ const AdvocateDashboard = () => {
     appointments,
     cases,
     reviews,
+    sosAlerts,
+    resolveSOS,
     updateAdvocateProfile,
     updateAppointmentStatus,
     createCase,
     updateCaseStage,
+    updateCaseStageNote,
     uploadCaseDocument,
     getAdvocateRating,
   } = useData();
@@ -97,6 +100,17 @@ const AdvocateDashboard = () => {
       (r) => String(r.advocateId) === String(currentUser.id) || r.advocateEmail === currentUser.email
     );
   }, [reviews, currentUser]);
+
+  const mySOSAlerts = useMemo(() => {
+    if (!currentUser) return [];
+    return (sosAlerts || []).filter(
+      (s) => String(s.advocateId) === String(currentUser.id) || s.advocateEmail === currentUser.email
+    );
+  }, [sosAlerts, currentUser]);
+
+  const activeSOSAlerts = useMemo(() => {
+    return mySOSAlerts.filter((s) => (s.status || "").toLowerCase() !== "resolved");
+  }, [mySOSAlerts]);
 
   const { avgRating, count: myReviewCount } = getAdvocateRating(currentUser?.id);
 
@@ -262,6 +276,17 @@ const AdvocateDashboard = () => {
       setMessage("");
     }, 2500);
   };
+
+  const handleSaveStageNote = (caseId, stage, note, setAsCurrent = false) => {
+    updateCaseStageNote(caseId, stage, note, currentUser?.name || "Advocate", setAsCurrent);
+
+    setMessage(`Stage note for "${stage}" saved successfully.`);
+
+    setTimeout(() => {
+      setMessage("");
+    }, 3000);
+  };
+
 
   const handleDocumentUpload = (
     caseId,
@@ -431,6 +456,27 @@ const AdvocateDashboard = () => {
                 <i className="bi bi-star-fill text-warning me-1"></i>
                 Reviews & Ratings ({myReviews.length})
               </button>
+
+              <button
+                className={`btn rounded-pill ${
+                  activeTab === "sos"
+                    ? "btn-danger text-white fw-bold shadow-sm"
+                    : activeSOSAlerts.length > 0
+                    ? "btn-outline-danger fw-bold border-2"
+                    : "btn-outline-secondary"
+                }`}
+                onClick={() =>
+                  setActiveTab("sos")
+                }
+              >
+                <i className="bi bi-bell-fill me-1"></i>
+                Emergency SOS
+                {activeSOSAlerts.length > 0 && (
+                  <span className="badge bg-danger text-white ms-2 rounded-pill">
+                    {activeSOSAlerts.length} Active
+                  </span>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -438,6 +484,31 @@ const AdvocateDashboard = () => {
         {/* OVERVIEW */}
         {activeTab === "overview" && (
           <>
+            {activeSOSAlerts.length > 0 && (
+              <div className="alert alert-danger border border-danger shadow-sm rounded-4 mb-4 p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div className="d-flex align-items-center gap-3">
+                  <div className="bg-danger text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style={{ width: "50px", height: "50px" }}>
+                    <i className="bi bi-bell-fill fs-4"></i>
+                  </div>
+                  <div>
+                    <h5 className="fw-bold mb-1 text-danger">
+                      🚨 URGENT: {activeSOSAlerts.length} Client Emergency SOS Alert(s)!
+                    </h5>
+                    <p className="mb-0 text-dark small">
+                      Client(s) have triggered emergency help messages requesting immediate advocate response.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-danger text-white rounded-pill px-4 fw-bold shadow-sm text-nowrap"
+                  onClick={() => setActiveTab("sos")}
+                >
+                  View Emergency Alerts ({activeSOSAlerts.length})
+                </button>
+              </div>
+            )}
+
             <div className="row g-4 mb-4">
 
               <div className="col-md-3">
@@ -1028,8 +1099,11 @@ const AdvocateDashboard = () => {
 
                             <CaseStageTimeline
                               currentStage={caseItem.stage || "Filed"}
+                              stageNotes={caseItem.stageNotes}
                               isAdvocate={true}
+                              caseTitle={caseItem.title}
                               onStageChange={(stg) => handleCaseStage(caseItem.id, stg)}
+                              onSaveStageNote={(stg, note, setAsCurrent) => handleSaveStageNote(caseItem.id, stg, note, setAsCurrent)}
                             />
 
                             <div className="mb-3">
@@ -1384,6 +1458,163 @@ const AdvocateDashboard = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+
+        {/* EMERGENCY SOS ALERTS TAB */}
+        {activeTab === "sos" && (
+          <div className="card border-0 shadow-sm rounded-4">
+            <div className="card-body p-4">
+
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                  <h4 className="fw-bold mb-1 text-danger">
+                    <i className="bi bi-bell-fill me-2"></i>
+                    Client Emergency SOS Alerts
+                  </h4>
+
+                  <p className="text-muted mb-0">
+                    Urgent help messages triggered by your clients during legal proceedings or emergencies.
+                  </p>
+                </div>
+
+                <span className="badge bg-danger text-white rounded-pill px-3 py-2 fs-6 shadow-sm">
+                  {activeSOSAlerts.length} Active Alert(s)
+                </span>
+              </div>
+
+              {mySOSAlerts.length === 0 ? (
+                <div className="text-center py-5">
+                  <i className="bi bi-shield-check display-3 text-muted"></i>
+                  <h5 className="fw-semibold mt-3">
+                    No Emergency Alerts Received
+                  </h5>
+
+                  <p className="text-muted mb-0">
+                    When your clients trigger an emergency SOS, their alerts and contact details will appear here immediately.
+                  </p>
+                </div>
+              ) : (
+                <div className="row g-4">
+                  {mySOSAlerts.map((sos) => {
+                    const isActive = (sos.status || "").toLowerCase() !== "resolved";
+
+                    return (
+                      <div className="col-lg-6" key={sos.id}>
+                        <div
+                          className={`card border rounded-4 h-100 shadow-sm ${
+                            isActive
+                              ? "border-danger bg-danger-subtle text-dark"
+                              : "bg-light"
+                          }`}
+                        >
+                          <div className="card-body p-4">
+
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                              <div>
+                                <span
+                                  className={`badge ${
+                                    isActive ? "bg-danger text-white" : "bg-success text-white"
+                                  } me-2 mb-1`}
+                                >
+                                  {isActive ? "🚨 EMERGENCY ALERT" : "✓ RESOLVED"}
+                                </span>
+
+                                <h5 className="fw-bold mb-0 text-dark">
+                                  Client: {sos.userName || "Client"}
+                                </h5>
+                              </div>
+
+                              <small className="text-muted opacity-75" style={{ fontSize: "11px" }}>
+                                {new Date(sos.createdAt || Date.now()).toLocaleString()}
+                              </small>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-3 border mb-3">
+                              <small className="text-muted fw-bold d-block mb-1">
+                                Emergency Message:
+                              </small>
+
+                              <p className="mb-0 fw-semibold text-danger" style={{ fontSize: "15px" }}>
+                                "{sos.message || "EMERGENCY ALERT: Immediate legal assistance required!"}"
+                              </p>
+                            </div>
+
+                            <div className="row g-2 mb-3 small">
+                              <div className="col-md-6">
+                                <span className="text-muted d-block">Phone Contact:</span>
+                                {sos.userPhone ? (
+                                  <a
+                                    href={`tel:${sos.userPhone}`}
+                                    className="fw-bold text-danger text-decoration-none"
+                                  >
+                                    <i className="bi bi-telephone-fill me-1"></i>
+                                    {sos.userPhone}
+                                  </a>
+                                ) : (
+                                  <span className="text-muted">Not provided</span>
+                                )}
+                              </div>
+
+                              <div className="col-md-6">
+                                <span className="text-muted d-block">Client Email:</span>
+                                {sos.userEmail ? (
+                                  <a
+                                    href={`mailto:${sos.userEmail}`}
+                                    className="fw-bold text-dark text-decoration-none"
+                                  >
+                                    <i className="bi bi-envelope-fill me-1"></i>
+                                    {sos.userEmail}
+                                  </a>
+                                ) : (
+                                  <span className="text-muted">Not provided</span>
+                                )}
+                              </div>
+
+                              {sos.caseTitle && (
+                                <div className="col-12 mt-2">
+                                  <span className="text-muted">Associated Case:</span>{" "}
+                                  <strong className="text-dark">{sos.caseTitle}</strong>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="d-flex gap-2 border-top pt-3">
+                              {isActive && (
+                                <button
+                                  type="button"
+                                  className="btn btn-danger btn-sm rounded-pill flex-fill fw-bold shadow-sm"
+                                  onClick={() => {
+                                    resolveSOS(sos.id);
+                                    setMessage(`Emergency SOS from ${sos.userName} marked as resolved.`);
+                                    setTimeout(() => setMessage(""), 3000);
+                                  }}
+                                >
+                                  <i className="bi bi-check-circle-fill me-1"></i>
+                                  Mark Action Taken / Resolved
+                                </button>
+                              )}
+
+                              {sos.userPhone && (
+                                <a
+                                  href={`tel:${sos.userPhone}`}
+                                  className="btn btn-outline-danger btn-sm rounded-pill fw-bold"
+                                >
+                                  <i className="bi bi-telephone-out-fill me-1"></i>
+                                  Call Client Now
+                                </a>
+                              )}
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 

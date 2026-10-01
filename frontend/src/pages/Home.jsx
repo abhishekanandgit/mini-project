@@ -95,12 +95,16 @@ function Home() {
             {/* AI ASSISTANT */}
             <div className="col-md-6 col-lg-4">
 
-              <div className="card border-0 shadow-sm h-100">
+              <div
+                className="card border-0 shadow-sm h-100"
+                style={{ cursor: "pointer" }}
+                onClick={() => window.dispatchEvent(new Event("open-ai-chatbot"))}
+              >
 
                 <div className="card-body p-4 text-center">
 
                   <div
-                    className="bg-dark text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                    className="bg-dark text-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
                     style={{
                       width: "65px",
                       height: "65px",
@@ -113,10 +117,18 @@ function Home() {
                     AI Legal Assistant
                   </h5>
 
-                  <p className="text-muted small mb-0">
+                  <p className="text-muted small mb-3">
                     Get basic information about legal terms, procedures,
                     rights and rules through the AI Legal Assistant.
                   </p>
+
+                  <button
+                    type="button"
+                    className="btn btn-dark rounded-pill btn-sm px-3"
+                  >
+                    <i className="bi bi-robot me-1"></i>
+                    Ask AI Assistant
+                  </button>
 
                 </div>
 

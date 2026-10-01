@@ -257,6 +257,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // DELETE USER / ADVOCATE
+  const deleteUser = async (userId) => {
+    try {
+      await fetch(`/api/users/${userId}`, { method: "DELETE" });
+    } catch (err) {
+      console.log("Backend delete user error, using local state update");
+    }
+
+    setUsers((prevUsers) => prevUsers.filter((user) => String(user.id) !== String(userId)));
+    if (String(currentUser?.id) === String(userId)) {
+      setCurrentUser(null);
+    }
+  };
+
   const value = {
     currentUser,
     users,
@@ -265,6 +279,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     approveAdvocate,
     rejectAdvocate,
+    deleteUser,
     updateUser,
     updateUserById,
   };

@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useData } from "../context/DataContext";
 
 const AdminDashboard = () => {
-  const { users, approveAdvocate, rejectAdvocate } = useAuth();
+  const { users, approveAdvocate, rejectAdvocate, deleteUser } = useAuth();
 
   const {
     advocates,
@@ -11,7 +11,9 @@ const AdminDashboard = () => {
     cases,
     reviews,
     verifyAdvocate,
+    removeAdvocate,
     deleteReview,
+    getAdvocateRating,
   } = useData();
 
   const [activeTab, setActiveTab] = useState("overview");
@@ -71,6 +73,36 @@ const AdminDashboard = () => {
     showMessage(
       `${advocate.name}'s advocate registration has been rejected.`
     );
+  };
+
+  const handleRevokeAdvocate = (advocate, reason = "bad user feedback") => {
+    if (
+      window.confirm(
+        `Are you sure you want to revoke approval for Advocate ${advocate.name} due to ${reason}?`
+      )
+    ) {
+      verifyAdvocate(advocate.id, "rejected");
+      rejectAdvocate(advocate.id);
+
+      showMessage(
+        `Approval revoked for ${advocate.name} due to ${reason}. Account status set to rejected.`
+      );
+    }
+  };
+
+  const handleDeleteAdvocate = (advocate) => {
+    if (
+      window.confirm(
+        `Are you sure you want to permanently remove Advocate ${advocate.name} from LegalAssist?`
+      )
+    ) {
+      deleteUser(advocate.id);
+      removeAdvocate(advocate.id);
+
+      showMessage(
+        `Advocate ${advocate.name} has been permanently removed from the platform.`
+      );
+    }
   };
 
   return (
@@ -551,53 +583,155 @@ const AdminDashboard = () => {
                     <thead>
                       <tr>
                         <th>Name</th>
-                        <th>Email</th>
+                        <th>Email & Contact</th>
                         <th>Specialization</th>
                         <th>Experience</th>
+                        <th>User Rating & Feedback</th>
                         <th>Status</th>
+                        <th className="text-end">Actions</th>
                       </tr>
                     </thead>
 
                     <tbody>
                       {registeredAdvocates.map(
-                        (advocate) => (
-                          <tr key={advocate.id}>
-                            <td>
-                              <strong>
-                                {advocate.name}
-                              </strong>
-                            </td>
+                        (advocate) => {
+                          const ratingStats = getAdvocateRating(advocate.id);
+                          const badReviews = ratingStats.reviews.filter(
+                            (r) => Number(r.rating) <= 2
+                          );
 
-                            <td>
-                              {advocate.email}
-                            </td>
+                          return (
+                            <tr key={advocate.id}>
+                              <td>
+                                <div>
+                                  <strong>{advocate.name}</strong>
+                                  {advocate.barId && (
+                                    <div className="small text-muted">
+                                      Bar ID: {advocate.barId}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
 
-                            <td>
-                              {advocate.specialization ||
-                                "Not specified"}
-                            </td>
+                              <td>
+                                <div>{advocate.email}</div>
+                                {advocate.phone && (
+                                  <div className="small text-muted">
+                                    {advocate.phone}
+                                  </div>
+                                )}
+                              </td>
 
-                            <td>
-                              {advocate.experience ?? 0} years
-                            </td>
+                              <td>
+                                {advocate.specialization || "Not specified"}
+                              </td>
 
-                            <td>
-                              <span
-                                className={`badge ${
-                                  advocate.status ===
-                                  "verified"
-                                    ? "bg-success"
-                                    : advocate.status ===
-                                      "rejected"
-                                    ? "bg-danger"
-                                    : "bg-warning text-dark"
-                                }`}
-                              >
-                                {advocate.status}
-                              </span>
-                            </td>
-                          </tr>
-                        )
+                              <td>
+                                {advocate.experience ?? 0} years
+                              </td>
+
+                              <td>
+                                <div className="d-flex align-items-center flex-wrap gap-1">
+                                  <span className="badge bg-warning text-dark rounded-pill px-2">
+                                    ★ {ratingStats.avgRating} ({ratingStats.count})
+                                  </span>
+                                  {badReviews.length > 0 && (
+                                    <span className="badge bg-danger text-white rounded-pill px-2" title={`${badReviews.length} bad review(s) submitted`}>
+                                      <i className="bi bi-exclamation-triangle-fill me-1"></i>
+                                      {badReviews.length} Bad Review{badReviews.length > 1 ? "s" : ""}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td>
+                                <span
+                                  className={`badge ${
+                                    advocate.status === "verified"
+                                      ? "bg-success"
+                                      : advocate.status === "rejected"
+                                      ? "bg-danger"
+                                      : "bg-warning text-dark"
+                                  }`}
+                                >
+                                  {advocate.status}
+                                </span>
+                              </td>
+
+                              <td className="text-end">
+                                <div className="d-flex gap-2 justify-content-end">
+                                  {advocate.status === "verified" && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-warning btn-sm rounded-pill"
+                                        title="Revoke advocate approval (e.g. after bad reviews)"
+                                        onClick={() =>
+                                          handleRevokeAdvocate(
+                                            advocate,
+                                            badReviews.length > 0
+                                              ? "bad user reviews"
+                                              : "admin review"
+                                          )
+                                        }
+                                      >
+                                        <i className="bi bi-person-x-fill me-1"></i>
+                                        Revoke Approval
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-danger btn-sm rounded-pill"
+                                        title="Permanently remove advocate account"
+                                        onClick={() => handleDeleteAdvocate(advocate)}
+                                      >
+                                        <i className="bi bi-trash me-1"></i>
+                                        Remove
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {advocate.status === "pending" && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="btn btn-success btn-sm rounded-pill"
+                                        onClick={() => handleApprove(advocate)}
+                                      >
+                                        Approve
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-danger btn-sm rounded-pill"
+                                        onClick={() => handleReject(advocate)}
+                                      >
+                                        Reject
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {advocate.status === "rejected" && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-success btn-sm rounded-pill"
+                                        onClick={() => handleApprove(advocate)}
+                                      >
+                                        Re-Approve
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn btn-outline-danger btn-sm rounded-pill"
+                                        onClick={() => handleDeleteAdvocate(advocate)}
+                                      >
+                                        Delete
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        }
                       )}
                     </tbody>
                   </table>
@@ -875,47 +1009,103 @@ const AdminDashboard = () => {
                     </thead>
 
                     <tbody>
-                      {reviews.map((rev) => (
-                        <tr key={rev.id}>
-                          <td>
-                            <strong>{rev.userName || "Client"}</strong>
-                          </td>
+                      {reviews.map((rev) => {
+                        const targetAdv = registeredAdvocates.find(
+                          (a) =>
+                            String(a.id) === String(rev.advocateId) ||
+                            a.name?.toLowerCase() === rev.advocateName?.toLowerCase()
+                        );
+                        const isBadReview = Number(rev.rating) <= 2;
 
-                          <td>
-                            <span className="badge bg-secondary">
-                              {rev.advocateName || "Advocate"}
-                            </span>
-                          </td>
+                        return (
+                          <tr key={rev.id}>
+                            <td>
+                              <strong>{rev.userName || "Client"}</strong>
+                            </td>
 
-                          <td>
-                            <span className="badge bg-warning text-dark rounded-pill px-2">
-                              ★ {rev.rating || 5} / 5
-                            </span>
-                          </td>
+                            <td>
+                              <div>
+                                <span className="badge bg-secondary">
+                                  {rev.advocateName || "Advocate"}
+                                </span>
+                                {targetAdv && (
+                                  <div className="mt-1">
+                                    <span
+                                      className={`badge ${
+                                        targetAdv.status === "verified"
+                                          ? "bg-success"
+                                          : targetAdv.status === "rejected"
+                                          ? "bg-danger"
+                                          : "bg-warning text-dark"
+                                      }`}
+                                      style={{ fontSize: "0.7rem" }}
+                                    >
+                                      {targetAdv.status}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
 
-                          <td style={{ maxWidth: "300px" }}>
-                            <p className="mb-0 small text-dark">{rev.comment || "(No comment)"}</p>
-                          </td>
+                            <td>
+                              <span
+                                className={`badge ${
+                                  isBadReview
+                                    ? "bg-danger text-white"
+                                    : "bg-warning text-dark"
+                                } rounded-pill px-2`}
+                              >
+                                ★ {rev.rating || 5} / 5
+                              </span>
+                            </td>
 
-                          <td className="small text-muted">
-                            {new Date(rev.createdAt || Date.now()).toLocaleDateString()}
-                          </td>
+                            <td style={{ maxWidth: "300px" }}>
+                              <p className="mb-0 small text-dark">
+                                {rev.comment || "(No comment)"}
+                              </p>
+                            </td>
 
-                          <td className="text-end">
-                            <button
-                              type="button"
-                              className="btn btn-outline-danger btn-sm rounded-pill"
-                              onClick={() => {
-                                deleteReview(rev.id);
-                                showMessage("Client review deleted successfully.");
-                              }}
-                            >
-                              <i className="bi bi-trash me-1"></i>
-                              Delete Review
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                            <td className="small text-muted">
+                              {new Date(
+                                rev.createdAt || Date.now()
+                              ).toLocaleDateString()}
+                            </td>
+
+                            <td className="text-end">
+                              <div className="d-flex gap-2 justify-content-end">
+                                {targetAdv && targetAdv.status === "verified" && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-warning btn-sm rounded-pill"
+                                    title="Revoke this advocate's approval due to bad review"
+                                    onClick={() =>
+                                      handleRevokeAdvocate(
+                                        targetAdv,
+                                        `bad review ("${rev.comment || 'Low rating'}")`
+                                      )
+                                    }
+                                  >
+                                    <i className="bi bi-person-x-fill me-1"></i>
+                                    Revoke Advocate
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  className="btn btn-outline-danger btn-sm rounded-pill"
+                                  onClick={() => {
+                                    deleteReview(rev.id);
+                                    showMessage("Client review deleted successfully.");
+                                  }}
+                                >
+                                  <i className="bi bi-trash me-1"></i>
+                                  Delete Review
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
