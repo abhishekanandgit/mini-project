@@ -1,0 +1,87 @@
+\chapter{Implementation and Testing}
+
+This chapter describes the implementation details of the frontend components, backend REST API routes, data persistence mechanisms, and functional test cases.
+
+\section{Frontend Implementation}
+The client application is implemented in React with Vite as the build tool. Reusable components such as `Navbar`, `Footer`, `AIChatbotModal`, `SOSModal`, and `CaseStageTimeline` promote code maintainability. `AuthContext` and `DataContext` manage local user authentication state and synchronized platform records across views.
+
+\section{Application Routing}
+React Router v6 provides client-side navigation with route protection based on user role and authentication state.
+
+\begin{table}[h!]
+    \centering
+    \caption{Application Route Mapping}
+    \label{tab:routes}
+    \begin{tabular}{p{4.5cm} p{4.5cm} p{5cm}}
+        \toprule
+        \textbf{Route Path} & \textbf{Access Level} & \textbf{Purpose / View} \\
+        \midrule
+        \texttt{/} & Public & System Landing Page \\
+        \texttt{/login} & Public & User / Advocate / Admin Login \\
+        \texttt{/register} & Public & Account Registration \\
+        \texttt{/user-dashboard} & Protected (User) & Client Case \& Booking Overview \\
+        \texttt{/advocate-dashboard} & Protected (Advocate) & Schedule \& Case Management \\
+        \texttt{/admin-dashboard} & Protected (Admin) & Advocate Verification Panel \\
+        \texttt{/book-appointment} & Protected (User) & Advocate Search \& Slot Reservation \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Backend Implementation}
+The backend service is engineered using Express.js on Node.js, providing JSON REST endpoints.
+
+\begin{lstlisting}[language=JavaScript, caption={Core Appointment Booking Endpoint Handler in Express.js}]
+app.post("/api/appointments", (req, res) => {
+  const { advocateId, userId, date, time, reason, consultationType } = req.body;
+  if (!advocateId || !userId || !date || !time) {
+    return res.status(400).json({ success: false, message: "Missing required booking details." });
+  }
+  const db = readDB();
+  const alreadyBooked = db.appointments.some((app) => 
+    String(app.advocateId) === String(advocateId) &&
+    app.date === date && app.time === time &&
+    ["pending", "Pending", "confirmed", "Confirmed"].includes(app.status)
+  );
+  if (alreadyBooked) {
+    return res.status(400).json({ success: false, message: "Slot already booked!" });
+  }
+  const newAppointment = {
+    id: `appointment-${Date.now()}`,
+    advocateId, userId, date, time, reason, consultationType,
+    status: "Pending", createdAt: new Date().toISOString()
+  };
+  db.appointments.push(newAppointment);
+  writeDB(db);
+  return res.json({ success: true, appointment: newAppointment });
+});
+\end{lstlisting}
+
+\section{Functional Testing and Verification}
+System features were systematically tested against functional expectations to verify system reliability across user roles.
+
+\begin{table}[h!]
+    \centering
+    \caption{Functional Test Cases}
+    \label{tab:test_cases}
+    \small
+    \begin{tabular}{p{3.5cm} p{5.5cm} p{2.5cm} p{1.8cm}}
+        \toprule
+        \textbf{Test Case ID \& Feature} & \textbf{Expected Behavior} & \textbf{Observed Result} & \textbf{Status} \\
+        \midrule
+        TC-01: User Register & Creates active client account in database & User created successfully & PASS \\
+        TC-02: Advocate Register & Creates pending advocate awaiting admin approval & Advocate set to pending & PASS \\
+        TC-03: Admin Verification & Admin approves advocate; status changes to verified & Advocate status updated & PASS \\
+        TC-04: Slot Reservation & Client reserves free slot; system verifies slot availability & Slot booked without collision & PASS \\
+        TC-05: Double-Booking Guard & Second client attempts to book reserved slot & System rejects request & PASS \\
+        TC-06: Case Timeline & Stage transition updates client dashboard timeline & Stage updated interactively & PASS \\
+        TC-07: Document Upload & Shared document attaches to appointment/case record & Document saved & PASS \\
+        TC-08: AI Legal Query & User submits legal term; assistant returns guidance & Guidance displayed & PASS \\
+        TC-09: Emergency SOS & User triggers SOS; alert recorded with location/timestamp & SOS recorded & PASS \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Implementation Status}
+All core operational modules—including user authentication, admin advocate verification, dynamic schedule management, slot reservation locking, case stage tracking, document attachment, AI legal assistance, emergency SOS generation, and hybrid database persistence—have been successfully developed, integrated, and verified.
+
+\clearpage

@@ -318,6 +318,10 @@ export const DataProvider = ({ children }) => {
     );
   };
 
+  const removeAdvocate = (advocateId) => {
+    setAdvocates((prev) => prev.filter((a) => String(a.id) !== String(advocateId)));
+  };
+
   const updateAdvocateProfile = (advocateId, updatedData) => {
     setAdvocates((prev) =>
       prev.map((advocate) =>
@@ -663,6 +667,41 @@ export const DataProvider = ({ children }) => {
     }
   };
 
+  const updateCaseStageNote = async (caseId, stage, note, author = "Advocate", setAsCurrentStage = false) => {
+    setCases((prev) =>
+      prev.map((caseItem) => {
+        if (String(caseItem.id) === String(caseId)) {
+          const updatedNotes = {
+            ...(caseItem.stageNotes || {}),
+            [stage]: {
+              note: note ? note.trim() : "",
+              updatedAt: new Date().toISOString(),
+              author: author || "Advocate",
+            },
+          };
+          return {
+            ...caseItem,
+            stageNotes: updatedNotes,
+            ...(setAsCurrentStage ? { stage } : {}),
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return caseItem;
+      })
+    );
+
+    try {
+      await fetch(`/api/cases/${caseId}/stage-note`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage, note, author, setAsCurrentStage }),
+      });
+    } catch (err) {
+      console.log("Backend update case stage note fallback");
+    }
+  };
+
+
   const uploadCaseDocument = async (caseId, document) => {
     const docItem = {
       ...document,
@@ -722,7 +761,7 @@ export const DataProvider = ({ children }) => {
     return newSOS;
   };
 
-  const resolveSOS = (sosId) => {
+  const resolveSOS = async (sosId) => {
     setSosAlerts((prev) =>
       prev.map((sos) =>
         String(sos.id) === String(sosId)
@@ -734,6 +773,12 @@ export const DataProvider = ({ children }) => {
           : sos
       )
     );
+
+    try {
+      await fetch(`/api/sos/${sosId}/resolve`, { method: "PUT" });
+    } catch (err) {
+      console.log("Backend resolve SOS fallback");
+    }
   };
 
   // --------------------------------------------------
@@ -812,6 +857,7 @@ export const DataProvider = ({ children }) => {
 
     addAdvocate,
     verifyAdvocate,
+    removeAdvocate,
     updateAdvocateProfile,
 
     updateAdvocateAvailability,
@@ -827,6 +873,7 @@ export const DataProvider = ({ children }) => {
 
     createCase,
     updateCaseStage,
+    updateCaseStageNote,
     uploadCaseDocument,
 
     triggerEmergencySOS,

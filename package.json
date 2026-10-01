@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "LegalAssist Fullstack Legal Support Portal",
   "scripts": {
-    "start": "cd backend && npm start",
+    "dev": "npx -y concurrently \"npm run backend\" \"npm run frontend\"",
+    "start": "npx -y concurrently \"npm run backend\" \"npm run frontend\"",
     "backend": "cd backend && npm start",
     "frontend": "cd frontend && npm run dev",
     "sync-db": "cd backend && node sync_to_mongo.js"

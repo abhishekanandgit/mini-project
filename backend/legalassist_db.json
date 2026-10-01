@@ -117,6 +117,17 @@
           }
         ]
       }
+    },
+    {
+      "id": "user-1787034093794",
+      "name": "pallavi",
+      "email": "pallavi@gmail.com",
+      "phone": "7306393601",
+      "password": "pppppp",
+      "role": "user",
+      "status": "active",
+      "verified": true,
+      "createdAt": "2026-08-18T06:21:33.794Z"
     }
   ],
   "availability": [],
@@ -543,6 +554,40 @@
       "status": "Rejected",
       "createdAt": "2026-08-15T18:52:52.400Z",
       "updatedAt": "2026-08-15T18:53:56.113Z"
+    },
+    {
+      "id": "appointment-1787033196971-5ypde0",
+      "advocateId": "advocate-1786798783345",
+      "advocateName": "adarsh",
+      "advocateEmail": "adarsh@gmail.com",
+      "userId": "user-1786798601666",
+      "userName": "vasu",
+      "userEmail": "vasu@gmail.com",
+      "userPhone": "9090909090",
+      "date": "2026-08-20",
+      "time": "10:00",
+      "reason": "ghj",
+      "consultationType": "Online Consultation",
+      "status": "Pending",
+      "createdAt": "2026-08-18T06:06:36.971Z"
+    },
+    {
+      "id": "appointment-1787034179792-1bn790",
+      "advocateId": "advocate-1786798783345",
+      "advocateName": "adarsh",
+      "advocateEmail": "adarsh@gmail.com",
+      "userId": "user-1787034093794",
+      "userName": "pallavi",
+      "userEmail": "pallavi@gmail.com",
+      "userPhone": "7306393601",
+      "date": "2026-08-20",
+      "time": "11:00",
+      "reason": "i want divorce,he is a red flag",
+      "consultationType": "Online Consultation",
+      "status": "Confirmed",
+      "createdAt": "2026-08-18T06:22:59.792Z",
+      "rejectionReason": "Advocate is unavailable at the requested date and time.",
+      "updatedAt": "2026-08-18T06:24:08.988Z"
     }
   ],
   "cases": [
@@ -558,11 +603,11 @@
       "appointmentId": "appointment-1786801416420-sa0b9h",
       "court": "",
       "nextHearing": "",
-      "stage": "Judgment",
+      "stage": "Filed",
       "documents": [],
       "id": "case-1786802826833",
       "createdAt": "2026-08-15T14:07:06.833Z",
-      "updatedAt": "2026-08-15T19:33:26.559Z"
+      "updatedAt": "2026-08-19T18:14:00.515Z"
     },
     {
       "title": "vasu - Legal Case",
@@ -576,11 +621,33 @@
       "appointmentId": "appointment-1786801416420-sa0b9h",
       "court": "",
       "nextHearing": "",
-      "stage": "Hearing",
+      "stage": "Filed",
+      "stageNotes": {
+        "Filed": {
+          "note": "Case plaint filed in Family Court under Case No. FC/2026/894.\nhiii",
+          "updatedAt": "2026-10-01T05:17:19.533Z",
+          "author": "adarsh"
+        },
+        "Consultation": {
+          "note": "Client consultation completed. All supporting evidence documents reviewed.",
+          "updatedAt": "2026-08-15T15:00:00.000Z",
+          "author": "Adv. adarsh"
+        },
+        "Hearing": {
+          "note": "First hearing completed before District Judge. Final oral arguments scheduled.",
+          "updatedAt": "2026-08-15T18:27:00.000Z",
+          "author": "Adv. adarsh"
+        },
+        "Judgment": {
+          "note": "Favorable judgment pronounced! Relief granted with costs.",
+          "updatedAt": "2026-08-15T19:00:00.000Z",
+          "author": "Adv. adarsh"
+        }
+      },
       "documents": [],
       "id": "case-1786802831262",
       "createdAt": "2026-08-15T14:07:11.262Z",
-      "updatedAt": "2026-08-15T18:27:14.528Z"
+      "updatedAt": "2026-10-01T05:17:19.533Z"
     },
     {
       "title": "vasu - Legal Case",
@@ -653,10 +720,86 @@
       "id": "case-1786809483065",
       "createdAt": "2026-08-15T15:58:03.065Z",
       "updatedAt": "2026-08-15T18:27:23.508Z"
+    },
+    {
+      "title": "pallavi - Legal Case",
+      "clientId": "user-1787034093794",
+      "clientName": "pallavi",
+      "clientEmail": "pallavi@gmail.com",
+      "clientPhone": "7306393601",
+      "advocateId": "advocate-1786798783345",
+      "advocateName": "adarsh",
+      "advocateEmail": "adarsh@gmail.com",
+      "appointmentId": "appointment-1787034179792-1bn790",
+      "court": "",
+      "nextHearing": "",
+      "stage": "Investigation",
+      "documents": [],
+      "id": "case-1787034251851",
+      "createdAt": "2026-08-18T06:24:11.851Z",
+      "updatedAt": "2026-08-18T06:24:40.344Z"
+    },
+    {
+      "title": "vasu - Legal Case",
+      "clientId": "user-1786798601666",
+      "clientName": "vasu",
+      "clientEmail": "vasu@gmail.com",
+      "clientPhone": "9090909090",
+      "advocateId": "advocate-1786798783345",
+      "advocateName": "adarsh",
+      "advocateEmail": "adarsh@gmail.com",
+      "appointmentId": "appointment-1786801416420-sa0b9h",
+      "court": "",
+      "nextHearing": "",
+      "stage": "Consultation",
+      "documents": [],
+      "id": "case-1787163235112",
+      "createdAt": "2026-08-19T18:13:55.112Z"
     }
   ],
-  "sosAlerts": [],
+  "sosAlerts": [
+    {
+      "userId": "user-1787034093794",
+      "userName": "pallavi",
+      "userEmail": "pallavi@gmail.com",
+      "userPhone": "7306393601",
+      "advocateId": "advocate-1786798783345",
+      "advocateName": "adarsh",
+      "advocateEmail": "adarsh@gmail.com",
+      "caseId": "appointment-1787034179792-1bn790",
+      "caseTitle": "i want divorce,he is a red flag",
+      "message": "hi hello",
+      "status": "active",
+      "id": "sos-1790832618231",
+      "createdAt": "2026-10-01T05:30:18.231Z"
+    },
+    {
+      "userId": "user-1787034093794",
+      "userName": "pallavi",
+      "userEmail": "pallavi@gmail.com",
+      "userPhone": "7306393601",
+      "advocateId": "advocate-1786798783345",
+      "advocateName": "adarsh",
+      "advocateEmail": "adarsh@gmail.com",
+      "caseId": "appointment-1787034179792-1bn790",
+      "caseTitle": "i want divorce,he is a red flag",
+      "message": "hujhjh",
+      "status": "active",
+      "id": "sos-1790832630097",
+      "createdAt": "2026-10-01T05:30:30.097Z"
+    }
+  ],
   "reviews": [
+    {
+      "id": "review-1787034354507",
+      "advocateId": "advocate-1786798783345",
+      "advocateName": "adarsh",
+      "userId": "user-1787034093794",
+      "userName": "pallavi",
+      "rating": 4,
+      "comment": "not bad",
+      "createdAt": "2026-08-18T06:25:54.507Z"
+    },
     {
       "id": "review-1786825058837",
       "advocateId": "advocate-1786798783345",

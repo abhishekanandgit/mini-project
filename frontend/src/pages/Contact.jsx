@@ -1,8 +1,13 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Contact() {
   const { currentUser } = useAuth();
+
+  if (currentUser?.role === "admin") {
+    return <Navigate to="/admin-dashboard" replace />;
+  }
 
   const [formData, setFormData] = useState({
     name: currentUser?.name || "",
