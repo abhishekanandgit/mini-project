@@ -21,6 +21,8 @@ const Register = () => {
     experience: "",
     fees: "",
     qualifications: "",
+    idProofDoc: null,
+    barCouncilDoc: null,
   });
 
   const [error, setError] = useState("");
@@ -35,6 +37,31 @@ const Register = () => {
     }));
 
     setError("");
+  };
+
+  const handleFileUpload = (e, docField) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File size exceeds 5MB limit. Please choose a smaller file.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((prev) => ({
+        ...prev,
+        [docField]: {
+          name: file.name,
+          type: file.type,
+          data: reader.result,
+          uploadedAt: new Date().toISOString(),
+        },
+      }));
+      setError("");
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleRoleChange = (newRole) => {
@@ -97,6 +124,16 @@ const Register = () => {
         setError("Please enter your qualifications.");
         return;
       }
+
+      if (!formData.idProofDoc) {
+        setError("Please upload your Government ID Proof (Aadhaar / Passport / Voter ID).");
+        return;
+      }
+
+      if (!formData.barCouncilDoc) {
+        setError("Please upload your State Bar Council Identity Card / Certificate.");
+        return;
+      }
     }
 
     setLoading(true);
@@ -115,6 +152,8 @@ const Register = () => {
       userData.experience = Number(formData.experience);
       userData.fees = Number(formData.fees);
       userData.qualifications = formData.qualifications.trim();
+      userData.idProofDoc = formData.idProofDoc;
+      userData.barCouncilDoc = formData.barCouncilDoc;
       userData.casesHandled = 0;
       userData.rating = 0;
       userData.bio = "";
@@ -414,11 +453,56 @@ const Register = () => {
                         />
                       </div>
 
+                      {/* Verification Documents Upload */}
+                      <div className="bg-light border rounded-3 p-3 mb-4">
+                        <h6 className="fw-bold mb-3 text-dark">
+                          <i className="bi bi-shield-check text-primary me-2"></i>
+                          Verification Documents (Required for Admin Approval)
+                        </h6>
+
+                        {/* 1. Government ID Proof */}
+                        <div className="mb-3">
+                          <label className="form-label fw-semibold small">
+                            1. Government ID Proof (Aadhaar / Passport / Voter ID) <span className="text-danger">*</span>
+                          </label>
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={(e) => handleFileUpload(e, "idProofDoc")}
+                            className="form-control rounded-3"
+                          />
+                          {formData.idProofDoc && (
+                            <div className="mt-2 small text-success fw-bold d-flex align-items-center">
+                              <i className="bi bi-check-circle-fill me-1"></i>
+                              Uploaded: {formData.idProofDoc.name}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 2. State Bar Council Identity Card */}
+                        <div>
+                          <label className="form-label fw-semibold small">
+                            2. State Bar Council Identity Card / Certificate <span className="text-danger">*</span>
+                          </label>
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={(e) => handleFileUpload(e, "barCouncilDoc")}
+                            className="form-control rounded-3"
+                          />
+                          {formData.barCouncilDoc && (
+                            <div className="mt-2 small text-success fw-bold d-flex align-items-center">
+                              <i className="bi bi-check-circle-fill me-1"></i>
+                              Uploaded: {formData.barCouncilDoc.name}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                       <div className="alert alert-warning rounded-3">
                         <strong>Important:</strong>{" "}
                         Advocate registrations require admin
-                        approval before the account can be used
-                        to log in.
+                        approval and document verification before the account can be activated.
                       </div>
                     </>
                   )}

@@ -8,6 +8,7 @@ const APPOINTMENTS_KEY = "legalassist_appointments_v2";
 const CASES_KEY = "legalassist_cases_v2";
 const SOS_KEY = "legalassist_sos_v2";
 const REVIEWS_KEY = "legalassist_reviews_v2";
+const TICKETS_KEY = "legalassist_support_tickets_v2";
 
 const DAYS = [
   "sunday",
@@ -207,63 +208,85 @@ export const DataProvider = ({ children }) => {
     }
   });
 
+  const [supportTickets, setSupportTickets] = useState(() => {
+    try {
+      const saved = localStorage.getItem(TICKETS_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      return [];
+    }
+  });
+
   // Fetch DB data on mount
   useEffect(() => {
-    fetch("/api/advocates")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (Array.isArray(data)) setAdvocates(data);
-      })
-      .catch(() => {});
+    const loadAllBackendData = () => {
+      fetch("/api/advocates")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (Array.isArray(data)) setAdvocates(data);
+        })
+        .catch(() => {});
 
-    fetch("/api/appointments")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setAppointments((prev) => {
-            const backendMap = new Map(data.map((item) => [String(item.id), item]));
-            const merged = prev.map((localItem) => {
-              const remote = backendMap.get(String(localItem.id));
-              if (!remote) return localItem;
-              return {
-                ...remote,
-                rejectionReason: remote.rejectionReason || localItem.rejectionReason || "",
-                status: remote.status || localItem.status,
-              };
+      fetch("/api/appointments")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setAppointments((prev) => {
+              const backendMap = new Map(data.map((item) => [String(item.id), item]));
+              const merged = prev.map((localItem) => {
+                const remote = backendMap.get(String(localItem.id));
+                if (!remote) return localItem;
+                return {
+                  ...remote,
+                  rejectionReason: remote.rejectionReason || localItem.rejectionReason || "",
+                  status: remote.status || localItem.status,
+                };
+              });
+
+              data.forEach((remoteItem) => {
+                if (!merged.some((m) => String(m.id) === String(remoteItem.id))) {
+                  merged.push(remoteItem);
+                }
+              });
+
+              return merged;
             });
+          }
+        })
+        .catch(() => {});
 
-            data.forEach((remoteItem) => {
-              if (!merged.some((m) => String(m.id) === String(remoteItem.id))) {
-                merged.push(remoteItem);
-              }
-            });
+      fetch("/api/cases")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (Array.isArray(data)) setCases(data);
+        })
+        .catch(() => {});
 
-            return merged;
-          });
-        }
-      })
-      .catch(() => {});
+      fetch("/api/sos")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (Array.isArray(data)) setSosAlerts(data);
+        })
+        .catch(() => {});
 
-    fetch("/api/cases")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (Array.isArray(data)) setCases(data);
-      })
-      .catch(() => {});
+      fetch("/api/reviews")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (Array.isArray(data)) setReviews(data);
+        })
+        .catch(() => {});
 
-    fetch("/api/sos")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (Array.isArray(data)) setSosAlerts(data);
-      })
-      .catch(() => {});
+      fetch("/api/support-tickets")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (Array.isArray(data)) setSupportTickets(data);
+        })
+        .catch(() => {});
+    };
 
-    fetch("/api/reviews")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (Array.isArray(data)) setReviews(data);
-      })
-      .catch(() => {});
+    loadAllBackendData();
+    const retryTimer = setTimeout(loadAllBackendData, 1200);
+    return () => clearTimeout(retryTimer);
   }, []);
 
   // --------------------------------------------------
@@ -289,6 +312,10 @@ export const DataProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
   }, [reviews]);
+
+  useEffect(() => {
+    localStorage.setItem(TICKETS_KEY, JSON.stringify(supportTickets));
+  }, [supportTickets]);
 
   // --------------------------------------------------
   // ADVOCATE FUNCTIONS
@@ -845,6 +872,64 @@ export const DataProvider = ({ children }) => {
   };
 
   // --------------------------------------------------
+  // SUPPORT TICKETS (CONTACT ADMIN)
+  // --------------------------------------------------
+  const createSupportTicket = async (ticketData) => {
+    const newTicket = {
+      id: `ticket-${Date.now()}`,
+      senderId: ticketData.senderId || "user",
+      senderName: ticketData.senderName || "User",
+      senderEmail: ticketData.senderEmail || "",
+      senderRole: ticketData.senderRole || "user",
+      category: ticketData.category || "General Issue",
+      subject: ticketData.subject ? ticketData.subject.trim() : "Issue Report",
+      message: ticketData.message ? ticketData.message.trim() : "",
+      status: "Pending",
+      createdAt: new Date().toISOString(),
+    };
+
+    setSupportTickets((prev) => [newTicket, ...prev]);
+
+    try {
+      await fetch("/api/support-tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTicket),
+      });
+    } catch (err) {
+      console.log("Offline support ticket creation:", err);
+    }
+
+    return { success: true, ticket: newTicket };
+  };
+
+  const updateSupportTicketStatus = async (id, newStatus) => {
+    setSupportTickets((prev) =>
+      prev.map((t) => (String(t.id) === String(id) ? { ...t, status: newStatus } : t))
+    );
+
+    try {
+      await fetch(`/api/support-tickets/${id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch (err) {
+      console.log("Offline status update:", err);
+    }
+  };
+
+  const deleteSupportTicket = async (id) => {
+    setSupportTickets((prev) => prev.filter((t) => String(t.id) !== String(id)));
+
+    try {
+      await fetch(`/api/support-tickets/${id}`, { method: "DELETE" });
+    } catch (err) {
+      console.log("Offline ticket deletion:", err);
+    }
+  };
+
+  // --------------------------------------------------
   // CONTEXT VALUE
   // --------------------------------------------------
 
@@ -882,6 +967,11 @@ export const DataProvider = ({ children }) => {
     addReview,
     deleteReview,
     getAdvocateRating,
+
+    supportTickets,
+    createSupportTicket,
+    updateSupportTicketStatus,
+    deleteSupportTicket,
   };
 
   return (

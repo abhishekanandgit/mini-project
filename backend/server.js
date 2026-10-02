@@ -19,25 +19,28 @@ process.on("unhandledRejection", (reason) => {
 });
 
 // MongoDB Connection with Placeholder & Key Detection
-const MONGODB_URI = process.env.MONGODB_URL || process.env.MONGODB_URI;
+const connectDB = () => {
+  const MONGODB_URI = process.env.MONGODB_URL || process.env.MONGODB_URI;
 
-if (MONGODB_URI && !MONGODB_URI.includes("<username>")) {
-  console.log("📡 Attempting to connect to MongoDB Atlas...");
+  if (MONGODB_URI && !MONGODB_URI.includes("<username>")) {
+    console.log("📡 Attempting to connect to MongoDB Atlas...");
 
-  mongoose.connection.on("error", (err) => {
-    console.log("⚠️ MongoDB Connection Warning (Event):", err.message, "- Persistent local DB engine remains active.");
-  });
+    mongoose.connection.on("error", (err) => {
+      console.log("⚠️ MongoDB Connection Warning (Event):", err.message, "- Persistent local DB engine remains active.");
+    });
 
-  mongoose
-    .connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-    })
-    .then(() => console.log("✅ MongoDB Atlas Connected Successfully! (Database: legalassist)"))
-    .catch((err) => console.log("⚠️ MongoDB Connection Warning:", err.message, "- Falling back to local persistent DB engine"));
-} else {
-  console.log("ℹ️ MongoDB URI contains placeholder. Running on persistent local DB engine.");
-}
+    mongoose
+      .connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+      })
+      .then(() => console.log("✅ MongoDB Atlas Connected Successfully! (Database: legalassist)"))
+      .catch((err) => console.log("⚠️ MongoDB Connection Warning:", err.message, "- Falling back to local persistent DB engine"));
+  } else {
+    console.log("ℹ️ MongoDB URI contains placeholder. Running on persistent local DB engine.");
+  }
+};
+
 
 const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
@@ -70,7 +73,7 @@ const normalizeAvailability = (availability) => {
 
 // Register
 app.post("/api/auth/register", (req, res) => {
-  const { name, email, phone, password, role, barId, specialization, experience, fees, qualifications } = req.body;
+  const { name, email, phone, password, role, barId, specialization, experience, fees, qualifications, idProofDoc, barCouncilDoc } = req.body;
 
   if (!name || !email || !password || !role) {
     return res.status(400).json({ success: false, message: "Missing required fields." });
@@ -102,6 +105,8 @@ app.post("/api/auth/register", (req, res) => {
     newUser.experience = Number(experience) || 0;
     newUser.fees = Number(fees) || 0;
     newUser.qualifications = qualifications ? qualifications.trim() : "";
+    newUser.idProofDoc = idProofDoc || null;
+    newUser.barCouncilDoc = barCouncilDoc || null;
     newUser.bio = "";
     newUser.location = "";
     newUser.availability = createDefaultAvailability();
@@ -625,6 +630,75 @@ app.delete("/api/reviews/:id", (req, res) => {
 });
 
 // --------------------------------------------------
+// SUPPORT & ADMIN CONTACT TICKETS ROUTES
+// --------------------------------------------------
+app.get("/api/support-tickets", (req, res) => {
+  const db = readDB();
+  return res.json(db.supportTickets || []);
+});
+
+app.post("/api/support-tickets", (req, res) => {
+  const { senderId, senderName, senderEmail, senderRole, category, subject, message } = req.body;
+
+  if (!senderName || !message || !subject) {
+    return res.status(400).json({ success: false, message: "Sender info, subject, and message are required." });
+  }
+
+  const db = readDB();
+  if (!Array.isArray(db.supportTickets)) {
+    db.supportTickets = [];
+  }
+
+  const newTicket = {
+    id: `ticket-${Date.now()}`,
+    senderId: senderId || "guest",
+    senderName: senderName.trim(),
+    senderEmail: senderEmail ? senderEmail.trim() : "",
+    senderRole: senderRole || "user",
+    category: category || "General Issue",
+    subject: subject.trim(),
+    message: message.trim(),
+    status: "Pending",
+    createdAt: new Date().toISOString(),
+  };
+
+  db.supportTickets.unshift(newTicket);
+  writeDB(db);
+
+  return res.json({ success: true, ticket: newTicket });
+});
+
+app.put("/api/support-tickets/:id/status", (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const db = readDB();
+
+  if (Array.isArray(db.supportTickets)) {
+    db.supportTickets = db.supportTickets.map((t) => {
+      if (String(t.id) === String(id)) {
+        return { ...t, status: status || "Resolved" };
+      }
+      return t;
+    });
+    writeDB(db);
+  }
+
+  return res.json({ success: true, message: "Ticket status updated." });
+});
+
+app.delete("/api/support-tickets/:id", (req, res) => {
+  const { id } = req.params;
+  const db = readDB();
+
+  if (Array.isArray(db.supportTickets)) {
+    db.supportTickets = db.supportTickets.filter((t) => String(t.id) !== String(id));
+    writeDB(db);
+  }
+
+  return res.json({ success: true, message: "Ticket deleted." });
+});
+
+// --------------------------------------------------
 // AI LEGAL ASSISTANT BACKEND ROUTE
 // --------------------------------------------------
 app.post("/api/ai/chat", async (req, res) => {
@@ -665,6 +739,7 @@ app.post("/api/ai/chat", async (req, res) => {
 
 const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ LegalAssist Backend DB Server listening on http://127.0.0.1:${PORT}`);
+  connectDB();
 });
 
 server.on("error", (err) => {

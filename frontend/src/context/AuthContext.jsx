@@ -43,15 +43,21 @@ export const AuthProvider = ({ children }) => {
 
   // Fetch Users from Backend DB on mount
   useEffect(() => {
-    fetch("/api/users")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setUsers(data);
-          localStorage.setItem(USERS_KEY, JSON.stringify(data));
-        }
-      })
-      .catch((err) => console.log("Backend DB connect info: using synced local cache"));
+    const loadUsers = () => {
+      fetch("/api/users")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setUsers(data);
+            localStorage.setItem(USERS_KEY, JSON.stringify(data));
+          }
+        })
+        .catch((err) => console.log("Backend DB connect info: using synced local cache"));
+    };
+
+    loadUsers();
+    const timer = setTimeout(loadUsers, 1200);
+    return () => clearTimeout(timer);
   }, []);
 
   // Sync state to localStorage cache

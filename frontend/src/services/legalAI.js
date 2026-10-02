@@ -212,31 +212,26 @@ export const queryLegalAI = async (userQuery) => {
 };
 
 /**
- * Formats a raw legal data object into structured HTML/Markdown ready response string
+ * Formats a raw legal data object into structured, concise, simple response string
  */
 export const formatAIResponseObj = (data) => {
-  const titleStr = data.title ? `### 📖 **${data.title}**\n\n` : "";
-  const explanationStr = `**Simple Explanation**\n${data.simpleExplanation}\n\n`;
+  const titleStr = data.title ? `### ⚖️ **${data.title}**\n\n` : "";
+  const explanationStr = `${data.simpleExplanation}\n\n`;
 
   let pointsStr = "";
   if (Array.isArray(data.keyPoints) && data.keyPoints.length > 0) {
-    pointsStr = `**Key Points**\n` + data.keyPoints.map((pt, i) => `${i + 1}. ${pt}`).join("\n") + "\n\n";
-  }
-
-  let exampleStr = "";
-  if (data.example) {
-    exampleStr = `**Example**\n${data.example}\n\n`;
+    pointsStr = `📌 **Key Details & Penalties:**\n` + data.keyPoints.map((pt) => `• ${pt}`).join("\n") + "\n\n";
   }
 
   let actionStr = "";
   if (Array.isArray(data.whatYouCanDo) && data.whatYouCanDo.length > 0) {
-    actionStr = `**What You Can Do**\n` + data.whatYouCanDo.map((act) => `• ${act}`).join("\n") + "\n\n";
+    actionStr = `💡 **Next Steps:**\n` + data.whatYouCanDo.map((act) => `• ${act}`).join("\n") + "\n\n";
   }
 
-  const importantStr = `**Important**\n⚠️ ${data.important || GENERAL_SAFETY_DISCLAIMER}`;
+  const importantStr = `⚠️ *Note:* ${data.important || GENERAL_SAFETY_DISCLAIMER}`;
 
   return {
     rawObj: data,
-    formattedText: `${titleStr}${explanationStr}${pointsStr}${exampleStr}${actionStr}${importantStr}`
+    formattedText: `${titleStr}${explanationStr}${pointsStr}${actionStr}${importantStr}`
   };
 };

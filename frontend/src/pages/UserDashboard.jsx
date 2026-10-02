@@ -3,14 +3,15 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useData } from "../context/DataContext";
 import SOSModal from "../components/SOSModal";
-
 import CaseStageTimeline from "../components/CaseStageTimeline";
+import ContactAdminModal from "../components/ContactAdminModal";
 
 function UserDashboard() {
   const { currentUser } = useAuth();
   const { advocates, appointments, cases, uploadCaseDocument, uploadAppointmentDocument, addReview, deleteAppointment } = useData();
 
   const [showSOS, setShowSOS] = useState(false);
+  const [showContactAdminModal, setShowContactAdminModal] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
   const [message, setMessage] = useState("");
 
@@ -559,6 +560,14 @@ function UserDashboard() {
           onClose={closeSOS}
         />
       )}
+
+      {/* CONTACT ADMIN MODAL */}
+      <ContactAdminModal
+        show={showContactAdminModal}
+        onClose={() => setShowContactAdminModal(false)}
+        currentUser={currentUser}
+        role="user"
+      />
 
     </div>
   );

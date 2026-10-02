@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useData } from "../context/DataContext";
 import CaseStageTimeline from "../components/CaseStageTimeline";
+import ContactAdminModal from "../components/ContactAdminModal";
 
 const AdvocateDashboard = () => {
   const { currentUser, updateUser } = useAuth();
+  const [showContactAdminModal, setShowContactAdminModal] = useState(false);
 
   const {
     advocates,
@@ -69,6 +71,24 @@ const AdvocateDashboard = () => {
   const [message, setMessage] = useState("");
   const [rejectingApptId, setRejectingApptId] = useState(null);
   const [rejectionReasonText, setRejectionReasonText] = useState("");
+  const [callModalTarget, setCallModalTarget] = useState(null);
+
+  const handleOpenCallModal = (name, phone, email) => {
+    if (!phone) return;
+    const cleanPhone = phone.replace(/[^0-9+]/g, "");
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // On mobile devices: launch native phone dialer with number pre-dialed
+      window.location.href = `tel:${cleanPhone}`;
+    } else {
+      // On Desktop PC: launch instant Web Video/Audio Call directly in a new tab
+      const meetingRoom = `LegalAssist-DirectCall-${cleanPhone.slice(-6)}-${Date.now().toString().slice(-4)}`;
+      window.open(`https://meet.jit.si/${meetingRoom}`, "_blank");
+      setMessage(`Launching instant Web Call room for ${name || "Client"} (${phone})...`);
+      setTimeout(() => setMessage(""), 4000);
+    }
+  };
 
   const myAppointments = useMemo(() => {
     if (!currentUser) {
@@ -767,7 +787,19 @@ const AdvocateDashboard = () => {
                               <strong>Email:</strong> {appointment.userEmail || "Not provided"}
                             </p>
                             <p className="mb-2">
-                              <strong>Phone:</strong> {appointment.userPhone || "Not provided"}
+                              <strong>Phone:</strong>{" "}
+                              {appointment.userPhone ? (
+                                <button
+                                  type="button"
+                                  className="btn btn-link btn-sm p-0 text-decoration-none fw-bold text-danger"
+                                  onClick={() => handleOpenCallModal(appointment.userName, appointment.userPhone, appointment.userEmail)}
+                                >
+                                  <i className="bi bi-telephone-fill me-1"></i>
+                                  {appointment.userPhone}
+                                </button>
+                              ) : (
+                                "Not provided"
+                              )}
                             </p>
                             <p className="mb-2">
                               <strong>Date:</strong> {appointment.date || "Not scheduled"}
@@ -1548,13 +1580,14 @@ const AdvocateDashboard = () => {
                               <div className="col-md-6">
                                 <span className="text-muted d-block">Phone Contact:</span>
                                 {sos.userPhone ? (
-                                  <a
-                                    href={`tel:${sos.userPhone}`}
-                                    className="fw-bold text-danger text-decoration-none"
+                                  <button
+                                    type="button"
+                                    className="btn btn-link btn-sm p-0 fw-bold text-danger text-decoration-none"
+                                    onClick={() => handleOpenCallModal(sos.userName, sos.userPhone, sos.userEmail)}
                                   >
                                     <i className="bi bi-telephone-fill me-1"></i>
                                     {sos.userPhone}
-                                  </a>
+                                  </button>
                                 ) : (
                                   <span className="text-muted">Not provided</span>
                                 )}
@@ -1600,13 +1633,14 @@ const AdvocateDashboard = () => {
                               )}
 
                               {sos.userPhone && (
-                                <a
-                                  href={`tel:${sos.userPhone}`}
+                                <button
+                                  type="button"
                                   className="btn btn-outline-danger btn-sm rounded-pill fw-bold"
+                                  onClick={() => handleOpenCallModal(sos.userName, sos.userPhone, sos.userEmail)}
                                 >
                                   <i className="bi bi-telephone-out-fill me-1"></i>
                                   Call Client Now
-                                </a>
+                                </button>
                               )}
                             </div>
 
@@ -1621,6 +1655,103 @@ const AdvocateDashboard = () => {
             </div>
           </div>
         )}
+
+        {/* QUICK CALL & CONTACT MODAL */}
+        {callModalTarget && (
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.65)", zIndex: 1065 }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+                <div className="modal-header bg-danger text-white border-0 p-3 px-4">
+                  <h5 className="modal-title fw-bold">
+                    <i className="bi bi-telephone-out-fill me-2"></i>
+                    Call & Contact Client
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setCallModalTarget(null)}
+                  ></button>
+                </div>
+                <div className="modal-body p-4 text-center">
+                  <div className="avatar-circle mx-auto mb-3 bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center" style={{ width: "68px", height: "68px" }}>
+                    <i className="bi bi-person-fill fs-1"></i>
+                  </div>
+                  <h5 className="fw-bold mb-1">{callModalTarget.name || "Client"}</h5>
+                  <p className="text-muted small mb-3">Client Emergency & Consultation Contact</p>
+
+                  <div className="bg-light p-3 rounded-3 mb-4 border d-flex align-items-center justify-content-between">
+                    <span className="fs-4 fw-bold text-dark font-monospace">
+                      <i className="bi bi-telephone-fill text-danger me-2"></i>
+                      {callModalTarget.rawPhone}
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-outline-dark btn-sm rounded-pill fw-bold"
+                      onClick={() => {
+                        navigator.clipboard.writeText(callModalTarget.rawPhone);
+                        setMessage(`Copied ${callModalTarget.rawPhone} to clipboard!`);
+                        setTimeout(() => setMessage(""), 3000);
+                      }}
+                    >
+                      <i className="bi bi-copy me-1"></i> Copy
+                    </button>
+                  </div>
+
+                  <div className="d-grid gap-2">
+                    <a
+                      href={`tel:${callModalTarget.phone}`}
+                      className="btn btn-danger btn-lg rounded-pill fw-bold text-white shadow-sm"
+                    >
+                      <i className="bi bi-telephone-fill me-2"></i>
+                      Launch Mobile Phone Dialer
+                    </a>
+
+                    <a
+                      href={`https://wa.me/${callModalTarget.phone.replace(/^\+/, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-success btn-lg rounded-pill fw-bold text-white shadow-sm"
+                    >
+                      <i className="bi bi-whatsapp me-2"></i>
+                      Open WhatsApp Chat / Call
+                    </a>
+
+                    <a
+                      href={`https://meet.jit.si/LegalAssist-Room-Call-${Date.now().toString().slice(-6)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary btn-lg rounded-pill fw-bold text-white shadow-sm"
+                    >
+                      <i className="bi bi-camera-video-fill me-2"></i>
+                      Start Instant Web Video Call
+                    </a>
+                  </div>
+                </div>
+                <div className="modal-footer border-0 bg-light p-3 justify-content-center">
+                  <button
+                    type="button"
+                    className="btn btn-secondary rounded-pill px-4 fw-bold"
+                    onClick={() => setCallModalTarget(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CONTACT ADMIN MODAL */}
+        <ContactAdminModal
+          show={showContactAdminModal}
+          onClose={() => setShowContactAdminModal(false)}
+          currentUser={currentUser}
+          role="advocate"
+        />
 
       </div>
     </div>

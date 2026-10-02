@@ -4,6 +4,8 @@
  */
 
 export const SUGGESTED_QUESTIONS = [
+  "What is the fine for driving without a helmet?",
+  "What is the fine for driving without a license?",
   "What is an FIR?",
   "What are my basic rights if I am arrested?",
   "What is bail?",
@@ -11,12 +13,16 @@ export const SUGGESTED_QUESTIONS = [
   "What is cybercrime and how to report it?",
   "What is defamation?",
   "What is domestic violence?",
-  "What is the difference between IPC and BNS?",
-  "What is the difference between a complaint and an FIR?",
   "How can I file a consumer complaint?"
 ];
 
 export const LEGAL_TOPICS = [
+  {
+    id: "traffic_law",
+    title: "Traffic Laws & Fines",
+    icon: "bi-shield-fill-check",
+    description: "Helmet fine, Driving without license, Drink & drive, Speeding, Signal jump, Motor Vehicles Act."
+  },
   {
     id: "criminal_law",
     title: "Criminal Law (BNS & BNSS)",
@@ -56,6 +62,47 @@ export const LEGAL_TOPICS = [
 ];
 
 export const KNOWLEDGE_BASE = [
+  {
+    keywords: ["helmet", "fine for driving without helmet", "without helmet", "helmet fine", "helmet challan", "traffic fine", "motor vehicles act", "traffic rules", "two wheeler fine"],
+    topic: "Traffic & Road Laws",
+    title: "Fine for Driving Without a Helmet",
+    simpleExplanation: "Under Section 194D of the Motor Vehicles (Amendment) Act, driving or riding a two-wheeler without a helmet carries a fine of ₹1,000 and 3 months license suspension.",
+    keyPoints: [
+      "Fine Amount: ₹1,000 fine for driving or riding without a helmet.",
+      "License Action: Disqualification / suspension of driving license for 3 months.",
+      "Mandatory for Both: Applies to both the driver and the pillion rider.",
+      "Safety Standard: Helmet must meet BIS (Bureau of Indian Standards / ISI) safety certification with chinstrap securely fastened."
+    ],
+    example: "If a traffic police officer stops a 2-wheeler rider without a helmet, an e-challan of ₹1,000 is issued, and the driving license can be suspended for 3 months.",
+    whatYouCanDo: [
+      "Always wear an ISI/BIS certified helmet securely strapped while riding.",
+      "Pay your traffic e-challan online at echallan.parivahan.gov.in or at the traffic court.",
+      "Ensure the pillion rider wears a helmet as well."
+    ],
+    important: "Repeated traffic violations can lead to vehicle impoundment or license cancellation under Motor Vehicles Act."
+  },
+  {
+    keywords: ["driving without license", "license fine", "no license", "drink and drive", "dui", "red light fine", "speeding fine", "seatbelt fine", "challan"],
+    topic: "Traffic & Road Laws",
+    title: "Common Indian Traffic Fines & Penalties (Motor Vehicles Act)",
+    simpleExplanation: "Indian traffic offences and penalty amounts under the Motor Vehicles (Amendment) Act:",
+    keyPoints: [
+      "Driving Without Helmet (Sec 194D): ₹1,000 fine + 3 months license suspension.",
+      "Driving Without License (Sec 181): ₹5,000 fine and/or up to 3 months imprisonment.",
+      "Drink & Drive / DUI (Sec 185): Up to ₹10,000 fine and/or 6 months imprisonment (first offence).",
+      "Red Light Jumping / Dangerous Driving (Sec 184): ₹1,000 to ₹5,000 fine.",
+      "Over-speeding (Sec 183): ₹1,000 - ₹2,000 for Light Motor Vehicles.",
+      "Driving Without Insurance (Sec 196): ₹2,000 fine and/or 3 months imprisonment.",
+      "Using Mobile Phone While Driving (Sec 184): ₹1,000 to ₹5,000 fine.",
+      "Not Wearing Seatbelt (Sec 194B): ₹1,000 fine."
+    ],
+    example: "Driving without a valid driving license attracts a ₹5,000 fine, whereas drink & drive carries up to ₹10,000 fine and court hearing.",
+    whatYouCanDo: [
+      "Keep digital copies of DL, RC, Insurance, and PUC on DigiLocker or mParivahan app.",
+      "Check and pay pending traffic e-challans at echallan.parivahan.gov.in."
+    ],
+    important: "Always carry valid vehicle documents and adhere to traffic rules to avoid heavy penalties."
+  },
   {
     keywords: ["fir", "first information report", "police complaint", "file fir", "zero fir"],
     topic: "Criminal Law",
