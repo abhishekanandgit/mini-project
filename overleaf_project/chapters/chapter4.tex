@@ -1,0 +1,165 @@
+\chapter{Design}
+
+The design phase translates functional requirements into precise architectural blueprints, interaction models, flowcharts, data schemas, and interface structures.
+
+\section{System Architecture}
+LegalAssist uses a modular three-tier web architecture consisting of the Presentation Layer, Application Layer, and Data Layer.
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}[node distance=2.2cm, auto]
+        \node (pres) [process, fill=blue!15, minimum width=12cm, minimum height=1.2cm] {\textbf{Presentation Layer (React + Vite + Bootstrap)}\\Pages, Components, Contexts, Navigation};
+        \node (app) [process, fill=purple!15, below of=pres, minimum width=12cm, minimum height=1.2cm] {\textbf{Application Layer (Node.js + Express REST APIs)}\\Auth Middleware, Availability Logic, Slot Locking, Case Pipeline};
+        \node (data) [process, fill=green!15, below of=app, minimum width=12cm, minimum height=1.2cm] {\textbf{Data Layer (Hybrid Persistence)}\\Persistent JSON Engine / MongoDB Atlas Cloud Synchronization};
+        
+        \draw [arrow, <->] (pres) -- node [right] {HTTP / REST / JSON} (app);
+        \draw [arrow, <->] (app) -- node [right] {Data I/O / Sync} (data);
+    \end{tikzpicture}
+    \caption{System Architecture of LegalAssist}
+    \label{fig:system_architecture}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Presentation Layer:} Built with React, Vite, and Bootstrap, rendering responsive dashboards tailored to Client, Advocate, and Admin roles.
+    \item \textbf{Application Layer:} Built with Express.js, providing secure RESTful API endpoints for authentication, advocate approval, availability management, slot validation, case stage updates, AI queries, and SOS triggers.
+    \item \textbf{Data Layer:} Utilizes a hybrid data access layer that operates on a local persistent JSON engine with optional automatic sync to MongoDB Atlas collections.
+\end{enumerate}
+
+\section{Use Case Design}
+The system defines interactions across three primary actors: Client (User), Advocate, and Administrator.
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        % Actors
+        \node (client) [actor] {Client};
+        \node (advocate) [actor, below=3cm of client] {Advocate};
+        \node (admin) [actor, below=3cm of advocate] {Admin};
+        
+        % Use Cases
+        \node (uc1) [usecase, right=3cm of client] {Register / Login};
+        \node (uc2) [usecase, below=0.5cm of uc1] {Browse Advocates};
+        \node (uc3) [usecase, below=0.5cm of uc2] {Book Slot};
+        \node (uc4) [usecase, below=0.5cm of uc3] {Track Case \& Docs};
+        \node (uc5) [usecase, below=0.5cm of uc4] {Set Availability};
+        \node (uc6) [usecase, below=0.5cm of uc5] {Approve / Reject Slot};
+        \node (uc7) [usecase, below=0.5cm of uc6] {Verify Advocates};
+        
+        % Connections Client
+        \draw (client) -- (uc1);
+        \draw (client) -- (uc2);
+        \draw (client) -- (uc3);
+        \draw (client) -- (uc4);
+        
+        % Connections Advocate
+        \draw (advocate) -- (uc1);
+        \draw (advocate) -- (uc5);
+        \draw (advocate) -- (uc6);
+        \draw (advocate) -- (uc4);
+        
+        % Connections Admin
+        \draw (admin) -- (uc1);
+        \draw (admin) -- (uc7);
+    \end{tikzpicture}
+    \caption{Use Case Diagram of LegalAssist}
+    \label{fig:use_case}
+\end{figure}
+
+\section{Data Flow Diagram (DFD)}
+DFDs model the flow of information between external entities, system processes, and persistent data stores.
+
+\subsection{Level 0 Data Flow Diagram}
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}[node distance=3cm]
+        \node (u) [process, fill=blue!10] {Client / Advocate / Admin};
+        \node (sys) [process, circle, fill=orange!20, right of=u, minimum size=2.5cm] {\textbf{0.0 LegalAssist System}};
+        \node (db) [database, right of=sys] {Data Store};
+        
+        \draw [arrow] (u) -- node [above] {Requests / Input} (sys);
+        \draw [arrow] (sys) -- node [below] {Responses / Data} (u);
+        \draw [arrow] (sys) -- node [above] {Write Data} (db);
+        \draw [arrow] (db) -- node [below] {Fetch Data} (sys);
+    \end{tikzpicture}
+    \caption{Level 0 Data Flow Diagram}
+    \label{fig:dfd0}
+\end{figure}
+
+\subsection{Level 1 Data Flow Diagram}
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}[node distance=2cm]
+        \node (p1) [process] {1.0 Auth \& Verification};
+        \node (p2) [process, right=1.5cm of p1] {2.0 Availability \& Slots};
+        \node (p3) [process, below=1.5cm of p1] {3.0 Booking \& Appointments};
+        \node (p4) [process, right=1.5cm of p3] {4.0 Case \& Document Pipeline};
+        
+        \node (d1) [database, right=1.5cm of p2] {Users DB};
+        \node (d2) [database, right=1.5cm of p4] {Appointments \& Cases DB};
+        
+        \draw [arrow] (p1) -- (d1);
+        \draw [arrow] (p2) -- (d1);
+        \draw [arrow] (p3) -- (d2);
+        \draw [arrow] (p4) -- (d2);
+    \end{tikzpicture}
+    \caption{Level 1 Data Flow Diagram}
+    \label{fig:dfd1}
+\end{figure}
+
+\section{Activity Design}
+Activity flow diagrams describe control execution during critical processes.
+
+\subsection{User Authentication Activity}
+The authentication activity handles login verification, role validation, and status checks (e.g., verifying that an advocate's account has been approved by an administrator before granting dashboard access).
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}[node distance=1.3cm]
+        \node (start) [process, fill=red!20] {Start};
+        \node (input) [process, fill=blue!20, below of=start] {Enter Email, Password \& Role};
+        \node (check) [decision, below of=input] {Credentials Valid?};
+        \node (role) [decision, below of=check, node distance=2.2cm] {Is Advocate?};
+        \node (status) [decision, below of=role, node distance=2.2cm] {Status Verified?};
+        \node (auth) [process, fill=green!20, below of=status, node distance=2cm] {Grant Access \& Token};
+        \node (err) [process, fill=red!20, right=2cm of check] {Show Error Message};
+        \node (stop) [process, fill=red!20, below of=auth] {End};
+        
+        \draw [arrow] (start) -- (input);
+        \draw [arrow] (input) -- (check);
+        \draw [arrow] (check) -- node[above]{No} (err);
+        \draw [arrow] (check) -- node[right]{Yes} (role);
+        \draw [arrow] (role) -- node[right]{Yes} (status);
+        \draw [arrow] (role) -- node[above]{No} (auth);
+        \draw [arrow] (status) -- node[right]{Yes} (auth);
+        \draw [arrow] (status) -| node[above]{No} (err);
+        \draw [arrow] (auth) -- (stop);
+    \end{tikzpicture}
+    \caption{User Authentication Activity Diagram}
+    \label{fig:activity_auth}
+\end{figure}
+
+\section{Database Design}
+The database engine maintains structured entities for Users, Advocates, Appointments, Cases, Availability, SOS Alerts, and Reviews.
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}[node distance=1cm]
+        \node (root) [process, fill=blue!10] {\textbf{legalassist\_db}};
+        \node (users) [process, below left=1.2cm and 2cm of root] {\textbf{users}\\id, name, email, role, status, barId, fees, availability};
+        \node (app) [process, below left=1.2cm and -0.5cm of root] {\textbf{appointments}\\id, advocateId, userId, date, time, status, reason};
+        \node (cases) [process, below right=1.2cm and -0.5cm of root] {\textbf{cases}\\id, clientId, advocateId, stage, documents};
+        \node (sos) [process, below right=1.2cm and 2cm of root] {\textbf{sosAlerts / reviews}\\id, userId, message, rating, comment};
+        
+        \draw [arrow] (root) -- (users);
+        \draw [arrow] (root) -- (app);
+        \draw [arrow] (root) -- (cases);
+        \draw [arrow] (root) -- (sos);
+    \end{tikzpicture}
+    \caption{Database Conceptual Schema}
+    \label{fig:db_schema}
+\end{figure}
+
+\section{Security \& Authorization Design}
+Security is enforced using role-based access control (RBAC), strict server-side request validation, input sanitization, and atomic slot reservation guards preventing duplicate concurrent bookings.
+
+\clearpage

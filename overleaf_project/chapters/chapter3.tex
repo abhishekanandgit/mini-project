@@ -1,0 +1,52 @@
+\chapter{Development Methodology}
+
+Software engineering principles require a structured development strategy to handle complex interactions between user roles, appointment logic, and external databases. LegalAssist was built using an \textbf{Agile Scrum framework}, enabling iterative growth through focused development sprints.
+
+\section{Agile Development}
+The Agile methodology emphasizes iterative software growth, continuous verification, and rapid refinement. Modules such as authentication, advocate verification, appointment locking, and case progress were constructed incrementally, ensuring that dependencies were fully stabilized prior to subsequent feature integration.
+
+\section{Scrum Framework}
+Development activities were organized into short iterations (sprints). The core Scrum elements implemented include:
+\begin{itemize}
+    \item \textbf{Product Backlog:} A prioritized list of system features, API routes, and UI components.
+    \item \textbf{Sprint Planning:} Definition of sprint goals and task assignments.
+    \item \textbf{Sprint Execution:} Code implementation, UI component assembly, and API handler creation.
+    \item \textbf{Sprint Review \& Testing:} Functional validation of completed features.
+\end{itemize}
+
+\section{Development Stages}
+The development of LegalAssist proceeded through six main stages:
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}[node distance=1.5cm]
+        \node (s1) [process] {Stage 1: Project Setup};
+        \node (s2) [process, below of=s1] {Stage 2: Auth \& Verification};
+        \node (s3) [process, below of=s2] {Stage 3: Availability \& Booking};
+        \node (s4) [process, below of=s3] {Stage 4: Case Management};
+        \node (s5) [process, below of=s4] {Stage 5: AI Chatbot \& SOS};
+        \node (s6) [process, below of=s5] {Stage 6: Testing \& Polish};
+        
+        \draw [arrow] (s1) -- (s2);
+        \draw [arrow] (s2) -- (s3);
+        \draw [arrow] (s3) -- (s4);
+        \draw [arrow] (s4) -- (s5);
+        \draw [arrow] (s5) -- (s6);
+    \end{tikzpicture}
+    \caption{Development Stages of LegalAssist}
+    \label{fig:dev_stages}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Stage 1: Environment \& Infrastructure Setup:} Initialized the Vite React application structure, configured Express.js API server, and established local persistent JSON data read/write handlers.
+    \item \textbf{Stage 2: Authentication \& Verification Module:} Implemented role-based registration (`user`, `advocate`, `admin`), login credential checks, password validation, and admin approval endpoints.
+    \item \textbf{Stage 3: Advocate Availability \& Slot Booking:} Developed weekly availability time grid components, booking submission controllers, duplicate slot checking, and slot status persistence.
+    \item \textbf{Stage 4: Case Tracking \& Document Sharing:} Built case creation triggers upon appointment approval, interactive stage timeline displays, and document upload endpoints.
+    \item \textbf{Stage 5: AI Assistant \& Emergency SOS:} Built the client modal interface for AI legal guidance and the quick-dispatch SOS alert generator.
+    \item \textbf{Stage 6: System Integration \& Refinement:} Integrated frontend context state management, validated cross-role permissions, refined UI styling, and connected MongoDB Atlas synchronization handlers.
+\end{enumerate}
+
+\section{Chapter Summary}
+The adoption of an Agile Scrum methodology provided a disciplined structure for building, testing, and refining LegalAssist across distinct functional sprints.
+
+\clearpage
