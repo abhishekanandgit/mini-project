@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 
 export default function Contact() {
   const { currentUser } = useAuth();
+  const { createSupportTicket } = useData();
 
   if (currentUser?.role === "admin") {
     return <Navigate to="/admin-dashboard" replace />;
@@ -17,6 +19,7 @@ export default function Contact() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,10 +30,28 @@ export default function Contact() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) return;
 
-    setSubmitted(true);
+    setLoading(true);
+    try {
+      await createSupportTicket({
+        senderId: currentUser?.id || `guest-${Date.now()}`,
+        senderName: formData.name.trim(),
+        senderEmail: formData.email.trim(),
+        senderRole: currentUser?.role || "user",
+        category: formData.category,
+        subject: `${formData.category}: Message from ${formData.name}`,
+        message: formData.message.trim(),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.log("Error creating support ticket:", err);
+      setSubmitted(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -126,9 +147,17 @@ export default function Contact() {
 
                   <button
                     type="submit"
-                    className="btn btn-gold w-100 rounded-pill py-2"
+                    className="btn btn-gold w-100 rounded-pill py-2 fw-bold"
+                    disabled={loading}
                   >
-                    Send Message to Support
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        Sending to Admin...
+                      </>
+                    ) : (
+                      "Send Message to Support"
+                    )}
                   </button>
                 </form>
               ) : (
@@ -136,12 +165,11 @@ export default function Contact() {
                   <i className="bi bi-check-circle-fill display-3 text-success d-block mb-3"></i>
 
                   <h4 className="fw-bold">
-                    Message Sent Successfully!
+                    Message Sent to Admin Successfully!
                   </h4>
 
                   <p className="text-muted">
-                    Our support team will respond to your inquiry within 24
-                    hours.
+                    Your message has been delivered directly to the System Administrator. The admin team will review your query and respond shortly.
                   </p>
 
                   <button

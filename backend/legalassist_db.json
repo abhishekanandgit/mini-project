@@ -26,7 +26,7 @@
       "id": "advocate-1786798783345",
       "name": "adarsh",
       "email": "adarsh@gmail.com",
-      "phone": "3434343434",
+      "phone": "8592889032",
       "password": "adarsh",
       "role": "advocate",
       "status": "verified",
@@ -755,6 +755,23 @@
       "documents": [],
       "id": "case-1787163235112",
       "createdAt": "2026-08-19T18:13:55.112Z"
+    },
+    {
+      "title": "vasu - Legal Case",
+      "clientId": "user-1786798601666",
+      "clientName": "vasu",
+      "clientEmail": "vasu@gmail.com",
+      "clientPhone": "9090909090",
+      "advocateId": "advocate-1786798783345",
+      "advocateName": "adarsh",
+      "advocateEmail": "adarsh@gmail.com",
+      "appointmentId": "appointment-1786801416420-sa0b9h",
+      "court": "",
+      "nextHearing": "",
+      "stage": "Consultation",
+      "documents": [],
+      "id": "case-1790929350477",
+      "createdAt": "2026-10-02T08:22:30.477Z"
     }
   ],
   "sosAlerts": [
@@ -769,9 +786,10 @@
       "caseId": "appointment-1787034179792-1bn790",
       "caseTitle": "i want divorce,he is a red flag",
       "message": "hi hello",
-      "status": "active",
+      "status": "resolved",
       "id": "sos-1790832618231",
-      "createdAt": "2026-10-01T05:30:18.231Z"
+      "createdAt": "2026-10-01T05:30:18.231Z",
+      "resolvedAt": "2026-10-02T08:17:51.871Z"
     },
     {
       "userId": "user-1787034093794",
@@ -819,6 +837,32 @@
       "rating": 5,
       "comment": "Excellent legal advice and family law representation!",
       "createdAt": "2026-08-15T20:16:13.588Z"
+    }
+  ],
+  "supportTickets": [
+    {
+      "id": "ticket-1790937200463",
+      "senderId": "user-1787034093794",
+      "senderName": "pallavi",
+      "senderEmail": "pallavi@gmail.com",
+      "senderRole": "user",
+      "category": "Technical Feedback",
+      "subject": "Technical Feedback: Message from pallavi",
+      "message": "asdfghjkllkjhgfb",
+      "status": "Pending",
+      "createdAt": "2026-10-02T10:33:20.463Z"
+    },
+    {
+      "id": "ticket-1790937149186",
+      "senderId": "advocate-1786798783345",
+      "senderName": "adarsh",
+      "senderEmail": "adarsh@gmail.com",
+      "senderRole": "advocate",
+      "category": "Advocate Verification Issue",
+      "subject": "Advocate Verification Issue: Message from adarsh",
+      "message": "asdfghjk",
+      "status": "Pending",
+      "createdAt": "2026-10-02T10:32:29.186Z"
     }
   ]
 }
