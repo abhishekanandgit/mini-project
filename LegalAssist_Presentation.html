@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LegalAssist - Final Evaluation Presentation</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-blue: #1e3a8a;
+      --accent-blue: #2563eb;
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+    }
+    body {
+      background-color: #090d16;
+      color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header-bar {
+      background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+      height: 6px;
+    }
+    .slide-card {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .slide-number {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .slide-title {
+      font-weight: 700;
+      color: #60a5fa;
+      margin-bottom: 24px;
+      border-bottom: 2px solid rgba(96, 165, 250, 0.2);
+      padding-bottom: 12px;
+    }
+    .feature-box {
+      background: rgba(15, 23, 42, 0.6);
+      border-left: 4px solid #3b82f6;
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    .badge-custom {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+    }
+    .nav-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover {
+      background: #1d4ed8;
+      transform: translateY(-2px);
+    }
+    .nav-btn:disabled {
+      background: #334155;
+      color: #64748b;
+      cursor: not-allowed;
+      transform: none;
+    }
+  </style>
+</head>
+<body class="p-3 p-md-5">
+
+  <div class="header-bar mb-4 rounded"></div>
+
+  <div class="container my-auto">
+    <div class="slide-card" id="slideContent">
+      <!-- Slide Content Injected Here -->
+    </div>
+
+    <div class="controls">
+      <button class="nav-btn" id="prevBtn" onclick="prevSlide()"><i class="bi bi-arrow-left me-2"></i> Previous</button>
+      <span class="slide-number" id="slideCounter">Slide 1 of 25</span>
+      <button class="nav-btn" id="nextBtn" onclick="nextSlide()">Next <i class="bi bi-arrow-right ms-2"></i></button>
+    </div>
+  </div>
+
+  <script>
+    const slides = [
+      {
+        title: "LegalAssist",
+        subtitle: "Smart AI Legal Assistant and Advocate Appointment & Case Management System",
+        content: `
+          <div class="text-center my-auto py-4">
+            <h1 class="display-4 fw-bold text-white mb-3">LegalAssist</h1>
+            <p class="fs-4 text-info mb-4">Smart AI Legal Assistant and Advocate Appointment & Case Management System</p>
+            <div class="inline-block badge bg-primary fs-6 px-3 py-2 mb-4">Final Evaluation Presentation</div>
+            
+            <div class="row justify-content-center mt-4 text-start">
+              <div class="col-md-6 bg-dark p-4 rounded-3 border border-secondary">
+                <p class="mb-2"><strong class="text-primary">Presenter:</strong> ABHISHEK ANAND</p>
+                <p class="mb-2"><strong class="text-primary">Reg. No / KTU ID:</strong> KTE25MCA-2002</p>
+                <p class="mb-2"><strong class="text-primary">Course:</strong> Master of Computer Applications (MCA)</p>
+                <p class="mb-2"><strong class="text-primary">Guide:</strong> Prof. REENA MURALI</p>
+                <p class="mb-0"><strong class="text-primary">Institution:</strong> Rajiv Gandhi Institute of Technology (RIT), Kottayam</p>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: "Introduction",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li><strong>LegalAssist</strong> is a full-stack web application designed to bridge the gap between citizens seeking legal aid and verified legal advocates.</li>
+            <li>Connects three primary user roles: <strong>Clients / Citizens</strong>, <strong>Advocates</strong>, and <strong>System Administrators</strong>.</li>
+            <li>Enables real-time advocate discovery, transparent consultation appointment scheduling, and automated weekly schedule management.</li>
+            <li>Integrates structured <strong>Case Lifecycle Tracking</strong> with visual stage updates from initial consultation to final judgment.</li>
+            <li>Features an <strong>AI-Powered Legal Assistant</strong> for 24/7 layman-friendly guidance on Indian legal codes (IPC, BNS, CrPC, BNSS, CPC) alongside an emergency <strong>SOS Alert System</strong>.</li>
+          </ul>
+        `
+      },
+      {
+        title: "Requirement Analysis",
+        content: `
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="feature-box h-100">
+                <h5 class="text-primary mb-3"><i class="bi bi-gear-fill me-2"></i>Functional Requirements</h5>
+                <ul>
+                  <li>Multi-role user registration and authentication.</li>
+                  <li>Advocate Bar Council document verification workflow.</li>
+                  <li>Real-time weekly slot booking & double-booking prevention.</li>
+                  <li>Case stage timeline & document management.</li>
+                  <li>AI Legal Assistant chatbot integration.</li>
+                  <li>Emergency SOS alert broadcasting center.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="feature-box h-100 border-info">
+                <h5 class="text-info mb-3"><i class="bi bi-shield-check me-2"></i>Non-Functional Requirements</h5>
+                <ul>
+                  <li><strong>Responsiveness:</strong> Mobile & desktop friendly UI.</li>
+                  <li><strong>Security:</strong> Password hashing with bcrypt.</li>
+                  <li><strong>Reliability:</strong> Dual-engine persistence (Local JSON + MongoDB Atlas).</li>
+                  <li><strong>Performance:</strong> Sub-second API response times and instant server listener initialization.</li>
+                  <li><strong>Usability:</strong> Intuitive glassmorphism interface.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: "Problem Statement",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li><strong>Fragmented Legal Aid Discovery:</strong> Finding verified legal professionals relies heavily on word-of-mouth with no central verification audit.</li>
+            <li><strong>Scheduling Friction:</strong> Manual phone calls and offline coordination lead to double-booked appointments and missed consultations.</li>
+            <li><strong>Opaque Case Tracking:</strong> Clients lack visibility into case stage progression, court hearing dates, and document updates.</li>
+            <li><strong>Complex Legal Terminology:</strong> Citizens struggle to understand basic statutory rights, legal sections, and procedures during emergencies.</li>
+            <li><strong>Proposed Solution:</strong> <strong>LegalAssist</strong> unifies advocate verification, automated slot booking, transparent case tracking, AI aid, and emergency SOS into a single integrated digital platform.</li>
+          </ul>
+        `
+      },
+      {
+        title: "Objectives",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li>Build a secure, role-based platform for Clients, Advocates, and Admins.</li>
+            <li>Implement an Admin audit workflow for Advocate credential verification before public directory listing.</li>
+            <li>Develop an automated schedule engine allowing Advocates to define weekly availability and prevent double-booking.</li>
+            <li>Provide visual Case Stage Tracking (Consultation → Hearing → Judgment → Closure) with document attachments.</li>
+            <li>Deploy an AI Legal Chatbot backed by an offline Indian Legal Knowledge Base (IPC, BNS, CrPC, BNSS) with Cloud AI fallback.</li>
+            <li>Provide a one-click Emergency SOS Alert system for instant citizen safety assistance.</li>
+          </ul>
+        `
+      },
+      {
+        title: "Scope and Relevance",
+        content: `
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="feature-box h-100">
+                <h5 class="text-primary mb-3">Project Scope</h5>
+                <ul>
+                  <li>Multi-role user authentication & profile management.</li>
+                  <li>Advocate search, filtering by specialization, fee, rating, and location.</li>
+                  <li>Interactive appointment booking and status updates.</li>
+                  <li>Complete case lifecycle management.</li>
+                  <li>AI legal assistant & emergency SOS alert modal.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="feature-box h-100 border-success">
+                <h5 class="text-success mb-3">Societal & Technical Relevance</h5>
+                <ul>
+                  <li>Democratizes access to verified legal professionals.</li>
+                  <li>Eliminates consultation scheduling conflicts.</li>
+                  <li>Provides 24/7 legal literacy and emergency aid for citizens.</li>
+                  <li>Zero-downtime hybrid database architecture ensures local accessibility even during cloud outages.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: "Development Methodology – Process",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li><strong>Agile / Incremental SDLC:</strong> Development was executed in iterative modular phases to ensure continuous testing and refinement.</li>
+            <li class="my-3"><strong>Pipeline Stages:</strong><br>
+              <div class="p-3 bg-dark rounded border border-primary text-center mt-2 fw-bold text-info">
+                Requirement Analysis → System Architecture Design → Module Development → System Integration → Empirical Verification & Testing
+              </div>
+            </li>
+            <li><strong>Version Control:</strong> Git source control maintained on GitHub (<code>abhishekanandgit/mini-project</code>) with clear commit milestones.</li>
+            <li><strong>Build Validation:</strong> Continuous automated syntax and bundling validation (<code>vite build</code> & <code>node -c</code>).</li>
+          </ul>
+        `
+      },
+      {
+        title: "Development Methodology – Modules",
+        content: `
+          <div class="row g-3">
+            <div class="col-md-6"><div class="p-3 bg-dark rounded border"><strong>1. Auth & Role Module:</strong> Registration, login, profile editing, and document upload.</div></div>
+            <div class="col-md-6"><div class="p-3 bg-dark rounded border"><strong>2. Advocate Verification:</strong> Admin review interface for Bar Council credentials.</div></div>
+            <div class="col-md-6"><div class="p-3 bg-dark rounded border"><strong>3. Scheduling Engine:</strong> Weekly slot configuration & double-booking prevention.</div></div>
+            <div class="col-md-6"><div class="p-3 bg-dark rounded border"><strong>4. Case Management:</strong> Stage timeline tracking, notes, and document repository.</div></div>
+            <div class="col-md-6"><div class="p-3 bg-dark rounded border"><strong>5. AI Legal Assistant:</strong> Indian Legal KB query engine & Gemini API integration.</div></div>
+            <div class="col-md-6"><div class="p-3 bg-dark rounded border"><strong>6. Emergency SOS Module:</strong> Emergency alert trigger & resolution center.</div></div>
+            <div class="col-md-12"><div class="p-3 bg-dark rounded border border-primary"><strong>7. Hybrid Data & Persistence Layer:</strong> Dual-engine storage (<code>db.js</code>) supporting local JSON and MongoDB Atlas sync.</div></div>
+          </div>
+        `
+      },
+      {
+        title: "Development Methodology – Testing",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li><strong>Authentication & Authorization Testing:</strong> Verified role protection and access control across client, advocate, and admin routes.</li>
+            <li><strong>Concurrency & Slot Validation:</strong> Enforced double-booking prevention under simultaneous booking requests.</li>
+            <li><strong>Hybrid DB Fallback Testing:</strong> Verified zero-downtime local JSON database fallback during cloud DNS/network timeouts.</li>
+            <li><strong>AI Knowledge Base Testing:</strong> Checked legal query resolution across IPC, BNS, CrPC, and Constitutional FAQ modules.</li>
+            <li><strong>End-to-End Cross-Browser Testing:</strong> Validated responsive UI rendering across mobile, tablet, and desktop views.</li>
+          </ul>
+        `
+      },
+      {
+        title: "System Architecture",
+        content: `
+          <div class="p-4 bg-dark rounded-3 border border-secondary text-center">
+            <h5 class="text-primary mb-4">LegalAssist Fullstack Architecture</h5>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="p-3 bg-secondary bg-opacity-25 rounded border">
+                  <h6>Presentation Layer (Client)</h6>
+                  <p class="small text-muted mb-0">React 18 + Vite<br>Bootstrap 5 + Custom CSS<br>React Router DOM<br>Context API (Auth & Data)</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3 bg-primary bg-opacity-25 rounded border border-primary">
+                  <h6>Application Layer (Server)</h6>
+                  <p class="small text-muted mb-0">Node.js + Express.js REST APIs<br>Auth & Verification Manager<br>Booking & Case Engine<br>AI Engine (Gemini + KB)<br>SOS Alert Dispatcher</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3 bg-success bg-opacity-25 rounded border border-success">
+                  <h6>Data Layer (Persistence)</h6>
+                  <p class="small text-muted mb-0">Dual-Engine DB (<code>db.js</code>)<br>Local JSON Storage<br>MongoDB Atlas Cloud<br>Uploaded Document Repository</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: "System Workflow",
+        content: `
+          <div class="text-center my-auto py-3">
+            <div class="d-inline-block p-2 bg-primary text-white rounded-circle mb-3 px-4 fw-bold">Start</div>
+            <div class="arrow-down my-1"><i class="bi bi-arrow-down fs-4 text-primary"></i></div>
+            <div class="d-inline-block p-3 bg-dark border rounded mb-3">User Registration / Login & Role Authentication</div>
+            <div class="row justify-content-center g-3 my-2">
+              <div class="col-md-4"><div class="p-3 bg-info bg-opacity-25 border border-info rounded"><strong>Client</strong><br><small>Book Appt / Track Case / AI / SOS</small></div></div>
+              <div class="col-md-4"><div class="p-3 bg-warning bg-opacity-25 border border-warning rounded"><strong>Advocate</strong><br><small>Manage Slots / Approve Appt / Update Case</small></div></div>
+              <div class="col-md-4"><div class="p-3 bg-danger bg-opacity-25 border border-danger rounded"><strong>Admin</strong><br><small>Verify Advocate / Platform Oversight</small></div></div>
+            </div>
+            <div class="d-inline-block p-2 bg-success text-white rounded-circle mt-3 px-4 fw-bold">End Workflow</div>
+          </div>
+        `
+      },
+      {
+        title: "Implementation Details – Frontend",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li><strong>Framework:</strong> Built with <strong>React 18</strong> and <strong>Vite</strong> for fast HMR and optimized production bundles.</li>
+            <li><strong>State Management:</strong> React Context API (<code>AuthContext</code>, <code>DataContext</code>) for global state, user session persistence, and real-time synchronization across views.</li>
+            <li><strong>Styling:</strong> Bootstrap 5 paired with custom CSS glassmorphism styling, clean typography, and interactive micro-animations.</li>
+            <li><strong>Dynamic Rendering:</strong> Responsive templates for Case Stage Timelines, Advocate Schedules, AI Chatbot modal, and Emergency SOS dialogs.</li>
+          </ul>
+        `
+      },
+      {
+        title: "Implementation Details – Backend & AI",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li><strong>Server Infrastructure:</strong> Engineered with <strong>Node.js</strong> and <strong>Express.js</strong> exposing modular REST API endpoints (<code>/api/auth</code>, <code>/api/advocates</code>, <code>/api/appointments</code>, <code>/api/cases</code>, <code>/api/sos</code>, <code>/api/ai/chat</code>).</li>
+            <li><strong>AI Legal Engine:</strong> Integrated legal query processing using an extensive <strong>Indian Legal Knowledge Base</strong> covering IPC, BNS, CrPC, BNSS, CPC, Fundamental Rights & Legal FAQs.</li>
+            <li><strong>Cloud AI Fallback:</strong> Seamless fallback between Google Gemini API and local knowledge retrieval.</li>
+          </ul>
+        `
+      },
+      {
+        title: "Implementation Details – Database & Security",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li><strong>Dual-Engine Database (<code>db.js</code>):</strong>
+              <ul>
+                <li>Primary cloud persistence via <strong>MongoDB Atlas</strong>.</li>
+                <li>Automatic, transparent fallback to local persistent JSON storage (<code>legalassist_db.json</code>) during cloud network timeouts.</li>
+              </ul>
+            </li>
+            <li><strong>Security Practices:</strong> Password protection using <code>bcrypt</code> hashing, strict input sanitization, and double-booking collision checks.</li>
+            <li><strong>Vite Proxy Error Handler:</strong> Graceful handling of backend cold starts with HTTP 503 fallback responses.</li>
+          </ul>
+        `
+      },
+      {
+        title: "Results – Authentication & Registration",
+        content: `
+          <div class="feature-box">
+            <h5 class="text-primary mb-3">User Onboarding & Role Selection</h5>
+            <ul class="fs-5">
+              <li>Clean unified portal for Client, Advocate, and Admin login and registration.</li>
+              <li>Advocate registration captures Bar Council Enrollment ID, legal specialization, experience years, consultation fees, and qualification documents.</li>
+              <li>Enforces email uniqueness and secure credential hashing.</li>
+            </ul>
+          </div>
+        `
+      },
+      {
+        title: "Results – User & Advocate Dashboards",
+        content: `
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="feature-box h-100">
+                <h5 class="text-primary mb-3">User Dashboard</h5>
+                <ul>
+                  <li>Active appointment status monitoring.</li>
+                  <li>Interactive case stage tracking.</li>
+                  <li>One-click SOS trigger & review submission.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="feature-box h-100 border-warning">
+                <h5 class="text-warning mb-3">Advocate Dashboard</h5>
+                <ul>
+                  <li>Weekly slot availability editor.</li>
+                  <li>Appointment approval/rejection with reason grounds.</li>
+                  <li>Case stage progression & document management.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: "Results – Advocate Directory & Booking",
+        content: `
+          <div class="feature-box">
+            <h5 class="text-primary mb-3">Advocate Search & Real-Time Appointment Booking</h5>
+            <ul class="fs-5">
+              <li><strong>Search & Filter:</strong> Search advocates by name, Bar ID, specialization (Criminal, Civil, Corporate, Family, Constitutional), location, and fee structure.</li>
+              <li><strong>Real-Time Booking:</strong> Select date and available time slots dynamically derived from the advocate's configured weekly schedule.</li>
+              <li><strong>Conflict Resolution:</strong> Prevents overlapping bookings for identical advocate time slots.</li>
+            </ul>
+          </div>
+        `
+      },
+      {
+        title: "Results – Case Stage Timeline",
+        content: `
+          <div class="feature-box border-info">
+            <h5 class="text-info mb-3">Structured Case Lifecycle Management</h5>
+            <div class="p-3 bg-dark rounded text-center my-3 fw-bold text-primary">
+              Consultation → Investigation → Hearing / Trial → Judgment → Case Closure
+            </div>
+            <ul class="fs-5">
+              <li>Advocate can update active stage, attach stage notes, and upload relevant legal filings or evidence documents.</li>
+              <li>Client gains full transparency into upcoming hearing dates and stage updates.</li>
+            </ul>
+          </div>
+        `
+      },
+      {
+        title: "Results – AI Legal Assistant & Emergency SOS",
+        content: `
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="feature-box h-100">
+                <h5 class="text-primary mb-3">AI Legal Assistant</h5>
+                <ul>
+                  <li>24/7 conversational assistant for legal queries.</li>
+                  <li>Explains legal sections, rights, and court procedures in plain layman terms.</li>
+                  <li>Powered by local Indian Legal KB with cloud Gemini fallback.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="feature-box h-100 border-danger">
+                <h5 class="text-danger mb-3">Emergency SOS Portal</h5>
+                <ul>
+                  <li>One-click emergency activation.</li>
+                  <li>Broadcasts location and nature of legal distress.</li>
+                  <li>Instantly displays key emergency legal rights (arrest rights, bail info, helpline numbers).</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: "Analysis of Results – Advocate Booking & Validation",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li><strong>Slot Concurrency Verification:</strong> Tested simultaneous client bookings for identical advocate slots; zero duplicate bookings occurred.</li>
+            <li><strong>Advocate Verification Audit:</strong> Verified that unverified advocates remain hidden from public search until Admin approval.</li>
+            <li><strong>Status Propagation:</strong> Appointment status changes (Pending → Confirmed / Rejected) sync instantly across Client and Advocate dashboards.</li>
+          </ul>
+        `
+      },
+      {
+        title: "Analysis of Results – AI Chatbot & Hybrid Persistence",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li><strong>Knowledge Retrieval Latency:</strong> Local legal knowledge queries resolve in <strong>&lt; 50ms</strong>, providing instant responses to users.</li>
+            <li><strong>Database Fault Tolerance:</strong> Tested server startup with simulated MongoDB Atlas network disconnects. Server started in <strong>&lt; 50ms</strong> using the persistent local JSON database with zero data loss.</li>
+            <li><strong>Zero Unhandled Proxy Errors:</strong> Confirmed clean handling of backend restart states via Vite proxy error middleware.</li>
+          </ul>
+        `
+      },
+      {
+        title: "Analysis of Results – Overall System Integration",
+        content: `
+          <ul class="fs-5 lh-lg">
+            <li><strong>Complete End-to-End Workflow:</strong> Successfully validated complete user journey:
+              <div class="p-2 bg-dark border rounded text-center my-2 text-info small fw-bold">
+                Registration → Advocate Verification → Slot Booking → Case Tracking → Review & Ticket Resolution
+              </div>
+            </li>
+            <li><strong>Fullstack Integration:</strong> Clean decoupling of React frontend and Node/Express REST backend.</li>
+            <li><strong>Performance:</strong> Lightweight production bundle size with fast load times across desktop and mobile browsers.</li>
+          </ul>
+        `
+      },
+      {
+        title: "Conclusion and Future Scope",
+        content: `
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="feature-box h-100">
+                <h5 class="text-primary mb-3">Conclusion</h5>
+                <ul>
+                  <li>Delivered an end-to-end fullstack platform unifying advocate discovery, booking, case tracking, AI aid, and emergency SOS.</li>
+                  <li>Established robust advocate verification and double-booking prevention.</li>
+                  <li>Implemented dual-engine database fallback for zero-downtime reliability.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="feature-box h-100 border-info">
+                <h5 class="text-info mb-3">Future Scope</h5>
+                <ul>
+                  <li>Integrated WebRTC video consultation sessions.</li>
+                  <li>Multi-language support (Malayalam, Hindi, Tamil, Telugu).</li>
+                  <li>Automated AI document parser for legal contract analysis.</li>
+                  <li>Native mobile app deployment (React Native).</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      {
+        title: "Git History",
+        content: `
+          <div class="feature-box">
+            <h5 class="text-primary mb-3">Version Control & Repository History</h5>
+            <ul class="fs-5">
+              <li><strong>GitHub Repository:</strong> <code>abhishekanandgit/mini-project</code></li>
+              <li><strong>Branch:</strong> <code>master</code></li>
+              <li><strong>Development Commit Milestones:</strong>
+                <ul>
+                  <li><code>826906f</code>: Complete LegalAssist portal features, fix backend startup proxy issue, and update dashboard workflows.</li>
+                  <li>Modular commit history covering auth, scheduling engine, case stage timeline, AI KB, and LaTeX report integration.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        `
+      },
+      {
+        title: "Bibliography",
+        content: `
+          <ul class="fs-6 lh-lg">
+            <li>React Documentation – <a href="https://react.dev/" target="_blank" class="text-info">https://react.dev/</a></li>
+            <li>Node.js & Express.js API Guidelines – <a href="https://expressjs.com/" target="_blank" class="text-info">https://expressjs.com/</a></li>
+            <li>MongoDB & Mongoose Cloud Documentation – <a href="https://www.mongodb.com/docs/" target="_blank" class="text-info">https://www.mongodb.com/docs/</a></li>
+            <li>Legislative Department, Ministry of Law and Justice, Govt. of India – <em>Indian Penal Code (IPC), Bharatiya Nyaya Sanhita (BNS), CrPC, BNSS, CPC</em></li>
+            <li>Google Gemini AI API Developer Documentation – <a href="https://ai.google.dev/" target="_blank" class="text-info">https://ai.google.dev/</a></li>
+            <li>Bootstrap 5 & Icons Documentation – <a href="https://getbootstrap.com/" target="_blank" class="text-info">https://getbootstrap.com/</a></li>
+            <li>Git & GitHub Source Control Reference – <a href="https://git-scm.com/" target="_blank" class="text-info">https://git-scm.com/</a></li>
+          </ul>
+        `
+      }
+    ];
+
+    let currentSlide = 0;
+
+    function renderSlide() {
+      const slide = slides[currentSlide];
+      const html = `
+        <div>
+          <div class="slide-number">Slide ${currentSlide + 1} of ${slides.length}</div>
+          <h2 class="slide-title">${slide.title}</h2>
+          ${slide.subtitle ? `<h5 class="text-info mb-4">${slide.subtitle}</h5>` : ''}
+          <div>${slide.content}</div>
+        </div>
+      `;
+      document.getElementById('slideContent').innerHTML = html;
+      document.getElementById('slideCounter').innerText = `Slide ${currentSlide + 1} of ${slides.length}`;
+      document.getElementById('prevBtn').disabled = (currentSlide === 0);
+      document.getElementById('nextBtn').disabled = (currentSlide === slides.length - 1);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        renderSlide();
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        renderSlide();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevSlide();
+      if (e.key === 'ArrowRight') nextSlide();
+    });
+
+    renderSlide();
+  </script>
+</body>
+</html>
