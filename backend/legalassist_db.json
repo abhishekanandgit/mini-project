@@ -802,9 +802,10 @@
       "caseId": "appointment-1787034179792-1bn790",
       "caseTitle": "i want divorce,he is a red flag",
       "message": "hujhjh",
-      "status": "active",
+      "status": "resolved",
       "id": "sos-1790832630097",
-      "createdAt": "2026-10-01T05:30:30.097Z"
+      "createdAt": "2026-10-01T05:30:30.097Z",
+      "resolvedAt": "2026-10-02T15:17:19.140Z"
     }
   ],
   "reviews": [

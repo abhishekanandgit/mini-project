@@ -368,11 +368,10 @@ const AdvocateDashboard = () => {
 
           <div className="d-flex align-items-center flex-wrap gap-2 mt-3 mt-md-0">
             <span
-              className={`badge rounded-pill px-3 py-2 ${
-                currentUser.status === "verified" || myProfile?.status === "verified"
+              className={`badge rounded-pill px-3 py-2 ${currentUser.status === "verified" || myProfile?.status === "verified"
                   ? "bg-success"
                   : "bg-danger text-white"
-              }`}
+                }`}
             >
               {currentUser.status === "verified" || myProfile?.status === "verified"
                 ? "Verified Advocate"
@@ -412,11 +411,10 @@ const AdvocateDashboard = () => {
           <div className="card-body">
             <div className="d-flex flex-wrap gap-2">
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "overview"
+                className={`btn rounded-pill ${activeTab === "overview"
                     ? "btn-dark"
                     : "btn-outline-dark"
-                }`}
+                  }`}
                 onClick={() =>
                   setActiveTab("overview")
                 }
@@ -425,11 +423,10 @@ const AdvocateDashboard = () => {
               </button>
 
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "appointments"
+                className={`btn rounded-pill ${activeTab === "appointments"
                     ? "btn-dark"
                     : "btn-outline-dark"
-                }`}
+                  }`}
                 onClick={() =>
                   setActiveTab("appointments")
                 }
@@ -438,11 +435,10 @@ const AdvocateDashboard = () => {
               </button>
 
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "cases"
+                className={`btn rounded-pill ${activeTab === "cases"
                     ? "btn-dark"
                     : "btn-outline-dark"
-                }`}
+                  }`}
                 onClick={() =>
                   setActiveTab("cases")
                 }
@@ -451,11 +447,10 @@ const AdvocateDashboard = () => {
               </button>
 
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "profile"
+                className={`btn rounded-pill ${activeTab === "profile"
                     ? "btn-dark"
                     : "btn-outline-dark"
-                }`}
+                  }`}
                 onClick={() =>
                   setActiveTab("profile")
                 }
@@ -464,11 +459,10 @@ const AdvocateDashboard = () => {
               </button>
 
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "reviews"
+                className={`btn rounded-pill ${activeTab === "reviews"
                     ? "btn-dark"
                     : "btn-outline-dark"
-                }`}
+                  }`}
                 onClick={() =>
                   setActiveTab("reviews")
                 }
@@ -478,13 +472,12 @@ const AdvocateDashboard = () => {
               </button>
 
               <button
-                className={`btn rounded-pill ${
-                  activeTab === "sos"
+                className={`btn rounded-pill ${activeTab === "sos"
                     ? "btn-danger text-white fw-bold shadow-sm"
                     : activeSOSAlerts.length > 0
-                    ? "btn-outline-danger fw-bold border-2"
-                    : "btn-outline-secondary"
-                }`}
+                      ? "btn-outline-danger fw-bold border-2"
+                      : "btn-outline-secondary"
+                  }`}
                 onClick={() =>
                   setActiveTab("sos")
                 }
@@ -771,13 +764,12 @@ const AdvocateDashboard = () => {
                                 {appointment.userName || appointment.clientName || "Client"}
                               </h5>
                               <span
-                                className={`badge ${
-                                  isAccepted
+                                className={`badge ${isAccepted
                                     ? "bg-success"
                                     : isRejected
-                                    ? "bg-danger"
-                                    : "bg-warning text-dark"
-                                }`}
+                                      ? "bg-danger"
+                                      : "bg-warning text-dark"
+                                  }`}
                               >
                                 {appointment.status}
                               </span>
@@ -808,7 +800,7 @@ const AdvocateDashboard = () => {
                               <strong>Time:</strong> {appointment.time || "Not scheduled"}
                             </p>
 
-                             {(appointment.consultationType === "Online Consultation" || appointment.meetingLink) && (appointment.status || "").toLowerCase() !== "rejected" && (
+                            {(appointment.consultationType === "Online Consultation" || appointment.meetingLink) && (appointment.status || "").toLowerCase() !== "rejected" && (
                               <div className="bg-primary-subtle border border-primary-subtle rounded-3 p-3 mb-3">
                                 <small className="text-primary d-block mb-1 fw-bold"><i className="bi bi-camera-video-fill me-1"></i> Virtual Video Consultation Link:</small>
                                 <a
@@ -1207,7 +1199,7 @@ const AdvocateDashboard = () => {
                               caseItem.documents
                             ) &&
                               caseItem.documents.length >
-                                0 && (
+                              0 && (
                                 <div className="mt-3">
                                   <small className="text-muted">
                                     Documents
@@ -1538,20 +1530,18 @@ const AdvocateDashboard = () => {
                     return (
                       <div className="col-lg-6" key={sos.id}>
                         <div
-                          className={`card border rounded-4 h-100 shadow-sm ${
-                            isActive
+                          className={`card border rounded-4 h-100 shadow-sm ${isActive
                               ? "border-danger bg-danger-subtle text-dark"
                               : "bg-light"
-                          }`}
+                            }`}
                         >
                           <div className="card-body p-4">
 
                             <div className="d-flex justify-content-between align-items-start mb-3">
                               <div>
                                 <span
-                                  className={`badge ${
-                                    isActive ? "bg-danger text-white" : "bg-success text-white"
-                                  } me-2 mb-1`}
+                                  className={`badge ${isActive ? "bg-danger text-white" : "bg-success text-white"
+                                    } me-2 mb-1`}
                                 >
                                   {isActive ? "🚨 EMERGENCY ALERT" : "✓ RESOLVED"}
                                 </span>
